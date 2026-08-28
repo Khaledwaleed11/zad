@@ -103,7 +103,7 @@ A complete custom design system supporting:
 ## 🌙 Splash Screen
 
 <p align="center">
-  <img width="400" height="900" alt="zad_splash" src="https://github.com/user-attachments/assets/7b07e91d-345e-415b-b655-e085d59a1739" />
+  <img width="350" height="700" alt="zad_splash" src="https://github.com/user-attachments/assets/7b07e91d-345e-415b-b655-e085d59a1739" />
 
 </p>
 
@@ -112,7 +112,7 @@ A complete custom design system supporting:
 ## 🏠 Home
 <p align="center">
 
-<img width="540" height="1200" alt="zad_home" src="https://github.com/user-attachments/assets/019637e2-b896-427d-b5b7-608bb71dc6f1" />
+<img width="350" height="700" alt="zad_home" src="https://github.com/user-attachments/assets/019637e2-b896-427d-b5b7-608bb71dc6f1" />
 
 </p>
 
@@ -121,7 +121,7 @@ A complete custom design system supporting:
 ## 📖 Quran
 <p align="center">
 
-<img width="540" height="1200" alt="zad_quraan" src="https://github.com/user-attachments/assets/cea546b5-39e8-4912-b184-d00d8c36ba62" />
+<img width="350" height="700" alt="zad_quraan" src="https://github.com/user-attachments/assets/cea546b5-39e8-4912-b184-d00d8c36ba62" />
 
 </p>
 
@@ -130,7 +130,7 @@ A complete custom design system supporting:
 ## 📜 Surah Reading
 <p align="center">
 
-<img width="540" height="1200" alt="zad_surah" src="https://github.com/user-attachments/assets/27270cb9-eefd-43b9-8ba5-3141ec324158" />
+<img width="350" height="700" alt="zad_surah" src="https://github.com/user-attachments/assets/27270cb9-eefd-43b9-8ba5-3141ec324158" />
 
 </p>
 
@@ -139,7 +139,7 @@ A complete custom design system supporting:
 ## 🤲 Azkar
 <p align="center">
 
-<img width="540" height="1200" alt="zad_azkar" src="https://github.com/user-attachments/assets/cfeb26c1-83cd-46e8-8dc5-55a73caac69d" />
+<img width="350" height="700" alt="zad_azkar" src="https://github.com/user-attachments/assets/cfeb26c1-83cd-46e8-8dc5-55a73caac69d" />
 
 </p>
 
@@ -148,7 +148,7 @@ A complete custom design system supporting:
 ## 📿 Sebha
 <p align="center">
 
-<img width="540" height="1200" alt="zad_sebha" src="https://github.com/user-attachments/assets/5f1fc920-7454-4fe3-b3b6-8e2005b44c47" />
+<img width="" height="700" alt="zad_sebha" src="https://github.com/user-attachments/assets/5f1fc920-7454-4fe3-b3b6-8e2005b44c47" />
 
 </p>
 
@@ -157,7 +157,7 @@ A complete custom design system supporting:
 ## 🧭 Qibla
 <p align="center">
 
-<img width="540" height="1200" alt="zad_qibla" src="https://github.com/user-attachments/assets/b2e06c96-be7a-4e86-9217-94d1112006f3" />
+<img width="350" height="700" alt="zad_qibla" src="https://github.com/user-attachments/assets/b2e06c96-be7a-4e86-9217-94d1112006f3" />
 
 </p>
 
@@ -166,7 +166,7 @@ A complete custom design system supporting:
 ## 🕌 Prayer Times
 <p align="center">
 
-<img width="540" height="1200" alt="zad_prayer" src="https://github.com/user-attachments/assets/26b2c03d-1857-4571-9342-395d45bd0d85" />
+<img width="350" height="700" alt="zad_prayer" src="https://github.com/user-attachments/assets/26b2c03d-1857-4571-9342-395d45bd0d85" />
 
 </p>
 
@@ -175,7 +175,7 @@ A complete custom design system supporting:
 ## ⚙️ Settings
 <p align="center">
 
-<img width="540" height="1200" alt="zad_setting" src="https://github.com/user-attachments/assets/15aa2504-1104-43f9-b2e0-d51c643a97d9" />
+<img width="350" height="700" alt="zad_setting" src="https://github.com/user-attachments/assets/15aa2504-1104-43f9-b2e0-d51c643a97d9" />
 
 </p>
 
