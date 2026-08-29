@@ -561,7 +561,6 @@ class _PrayerCardState extends State<PrayerCard>
   }
 
   Widget _buildLoading(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
 
     return const SizedBox(
       height: 185,

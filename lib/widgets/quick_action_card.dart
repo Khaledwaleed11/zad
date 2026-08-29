@@ -45,15 +45,23 @@ class _QuickActionCardState extends State<QuickActionCard>
   }
 
   Future<void> _handleTap() async {
+    if (widget.onTap == null) {
+      return;
+    }
+
     await _controller.forward();
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     await _controller.reverse();
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
-    widget.onTap?.call();
+    widget.onTap!.call();
   }
 
   @override

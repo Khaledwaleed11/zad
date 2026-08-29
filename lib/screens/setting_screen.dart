@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../services/notification_service.dart';
+import '../services/prayer_service.dart';
 import '../widgets/setting_tile.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -27,9 +30,14 @@ class _SettingsScreenState extends State<SettingsScreen>
   late Animation<Offset> _applicationAnimation;
   late Animation<Offset> _footerAnimation;
 
+  bool _prayerNotificationsEnabled = true;
+  bool _azkarNotificationsEnabled = true;
+
   @override
   void initState() {
     super.initState();
+
+    _loadNotificationSettings();
 
     _pageController = AnimationController(
       vsync: this,
@@ -84,6 +92,66 @@ class _SettingsScreenState extends State<SettingsScreen>
     _pageController.forward();
   }
 
+  Future<void> _loadNotificationSettings() async {
+    final box = await Hive.openBox('settings');
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _prayerNotificationsEnabled =
+          box.get('prayerNotificationsEnabled', defaultValue: true) as bool;
+
+      _azkarNotificationsEnabled =
+          box.get('azkarNotificationsEnabled', defaultValue: true) as bool;
+    });
+  }
+
+  Future<void> _togglePrayerNotifications(bool value) async {
+    final box = await Hive.openBox('settings');
+
+    await box.put('prayerNotificationsEnabled', value);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _prayerNotificationsEnabled = value;
+    });
+
+    if (value) {
+      try {
+        await PrayerService().scheduleUpcomingNotifications();
+      } catch (_) {}
+    } else {
+      await NotificationService.cancelPrayerNotifications();
+    }
+  }
+
+  Future<void> _toggleAzkarNotifications(bool value) async {
+    final box = await Hive.openBox('settings');
+
+    await box.put('azkarNotificationsEnabled', value);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _azkarNotificationsEnabled = value;
+    });
+
+    if (value) {
+      try {
+        await NotificationService.scheduleAzkarNotifications();
+      } catch (_) {}
+    } else {
+      await NotificationService.cancelAzkarNotifications();
+    }
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -107,11 +175,9 @@ class _SettingsScreenState extends State<SettingsScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
-
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -128,32 +194,24 @@ class _SettingsScreenState extends State<SettingsScreen>
                 color: colors.primary,
               ),
             ),
-
             const SizedBox(width: 10),
-
             const Text(
               'الإعدادات',
               style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
             ),
           ],
         ),
-
         centerTitle: true,
       ),
-
       body: ListView(
         physics: const BouncingScrollPhysics(),
-
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
-
         children: [
           _animatedSection(
             slide: _headerAnimation,
             child: _buildHeroHeader(context, colors),
           ),
-
           const SizedBox(height: 26),
-
           _animatedSection(
             slide: _appearanceAnimation,
             child: Column(
@@ -164,16 +222,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                   title: 'المظهر',
                   subtitle: 'خصّص شكل التطبيق',
                 ),
-
                 const SizedBox(height: 10),
-
                 _buildThemeTile(context, colors),
               ],
             ),
           ),
-
           const SizedBox(height: 26),
-
           _animatedSection(
             slide: _prayerAnimation,
             child: Column(
@@ -184,9 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   title: 'الصلاة',
                   subtitle: 'إعدادات مواقيت الصلاة',
                 ),
-
                 const SizedBox(height: 10),
-
                 SettingsTile(
                   icon: Icons.location_on_outlined,
                   title: 'الموقع الحالي',
@@ -194,9 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   trailing: _buildArrow(colors),
                   onTap: () {},
                 ),
-
                 const SizedBox(height: 10),
-
                 SettingsTile(
                   icon: Icons.calculate_outlined,
                   title: 'طريقة حساب الصلاة',
@@ -204,12 +254,22 @@ class _SettingsScreenState extends State<SettingsScreen>
                   trailing: _buildArrow(colors),
                   onTap: () {},
                 ),
+                const SizedBox(height: 10),
+                SettingsTile(
+                  icon: Icons.notifications_active_outlined,
+                  title: 'إشعارات الصلاة',
+                  subtitle: _prayerNotificationsEnabled
+                      ? 'إشعارات أوقات الصلاة مفعلة'
+                      : 'إشعارات أوقات الصلاة متوقفة',
+                  trailing: Switch.adaptive(
+                    value: _prayerNotificationsEnabled,
+                    onChanged: _togglePrayerNotifications,
+                  ),
+                ),
               ],
             ),
           ),
-
           const SizedBox(height: 26),
-
           _animatedSection(
             slide: _applicationAnimation,
             child: Column(
@@ -220,9 +280,19 @@ class _SettingsScreenState extends State<SettingsScreen>
                   title: 'التطبيق',
                   subtitle: 'معلومات وإعدادات التطبيق',
                 ),
-
                 const SizedBox(height: 10),
-
+                SettingsTile(
+                  icon: Icons.notifications_none_rounded,
+                  title: 'إشعارات الأذكار',
+                  subtitle: _azkarNotificationsEnabled
+                      ? 'تذكيرات الأذكار اليومية مفعلة'
+                      : 'تذكيرات الأذكار اليومية متوقفة',
+                  trailing: Switch.adaptive(
+                    value: _azkarNotificationsEnabled,
+                    onChanged: _toggleAzkarNotifications,
+                  ),
+                ),
+                const SizedBox(height: 10),
                 SettingsTile(
                   icon: Icons.info_outline_rounded,
                   title: 'عن زاد',
@@ -232,9 +302,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     _showAboutDialog(context);
                   },
                 ),
-
                 const SizedBox(height: 10),
-
                 const SettingsTile(
                   icon: Icons.verified_outlined,
                   title: 'الإصدار',
@@ -243,9 +311,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ],
             ),
           ),
-
           const SizedBox(height: 32),
-
           _animatedSection(
             slide: _footerAnimation,
             child: _buildFooter(context, colors),
@@ -258,9 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildHeroHeader(BuildContext context, ColorScheme colors) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(20),
-
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topRight,
@@ -270,9 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             Color.lerp(colors.primary, colors.primaryContainer, 0.45)!,
           ],
         ),
-
         borderRadius: BorderRadius.circular(24),
-
         boxShadow: [
           BoxShadow(
             color: colors.primary.withValues(alpha: 0.14),
@@ -281,27 +343,22 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         ],
       ),
-
       child: Row(
         children: [
           Container(
             width: 58,
             height: 58,
-
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.13),
               borderRadius: BorderRadius.circular(18),
             ),
-
             child: const Icon(
               Icons.settings_rounded,
               color: Colors.white,
               size: 29,
             ),
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,9 +371,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     color: Colors.white70,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 const Text(
                   'إعدادات زاد',
                   style: TextStyle(
@@ -325,9 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   'كل شيء بالشكل الذي يناسبك',
                   style: TextStyle(
@@ -339,7 +392,6 @@ class _SettingsScreenState extends State<SettingsScreen>
               ],
             ),
           ),
-
           Icon(
             Icons.auto_awesome_rounded,
             size: 19,
@@ -363,22 +415,16 @@ class _SettingsScreenState extends State<SettingsScreen>
         Container(
           width: 38,
           height: 38,
-
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.10),
-
             borderRadius: BorderRadius.circular(12),
           ),
-
           child: Icon(icon, size: 19, color: colors.primary),
         ),
-
         const SizedBox(width: 10),
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
               Text(
                 title,
@@ -388,9 +434,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   color: colors.onSurface,
                 ),
               ),
-
               const SizedBox(height: 2),
-
               Text(
                 subtitle,
                 style: TextStyle(
@@ -411,11 +455,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       icon: widget.isDarkMode
           ? Icons.dark_mode_rounded
           : Icons.light_mode_rounded,
-
       title: 'الوضع الداكن',
-
       subtitle: widget.isDarkMode ? 'الوضع الداكن مفعل' : 'الوضع الفاتح مفعل',
-
       trailing: Switch.adaptive(
         value: widget.isDarkMode,
         onChanged: (_) {
@@ -439,21 +480,17 @@ class _SettingsScreenState extends State<SettingsScreen>
         Container(
           width: 58,
           height: 58,
-
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(18),
           ),
-
           child: Icon(
             Icons.auto_awesome_rounded,
             size: 27,
             color: colors.primary,
           ),
         ),
-
         const SizedBox(height: 12),
-
         Text(
           'ZAD',
           style: TextStyle(
@@ -463,9 +500,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             color: colors.primary,
           ),
         ),
-
         const SizedBox(height: 5),
-
         Text(
           'زادك في طريقك إلى الله',
           style: TextStyle(
@@ -474,13 +509,10 @@ class _SettingsScreenState extends State<SettingsScreen>
             color: colors.onSurfaceVariant,
           ),
         ),
-
         const SizedBox(height: 10),
-
         Container(
           width: 55,
           height: 3,
-
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.20),
             borderRadius: BorderRadius.circular(10),
@@ -495,45 +527,33 @@ class _SettingsScreenState extends State<SettingsScreen>
 
     showDialog(
       context: context,
-
       builder: (dialogContext) {
         return Dialog(
           backgroundColor: colors.surface,
-
           elevation: 0,
-
           insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(26),
           ),
-
           child: Padding(
             padding: const EdgeInsets.all(24),
-
             child: Column(
               mainAxisSize: MainAxisSize.min,
-
               children: [
                 Container(
                   width: 62,
                   height: 62,
-
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.10),
-
                     borderRadius: BorderRadius.circular(18),
                   ),
-
                   child: Icon(
                     Icons.auto_awesome_rounded,
                     size: 30,
                     color: colors.primary,
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 Text(
                   'عن زاد',
                   style: TextStyle(
@@ -542,48 +562,36 @@ class _SettingsScreenState extends State<SettingsScreen>
                     color: colors.onSurface,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 Text(
                   'زاد هو تطبيق إسلامي يساعدك على متابعة القرآن الكريم والأذكار ومواقيت الصلاة واتجاه القبلة والسبحة في مكان واحد.',
                   textAlign: TextAlign.center,
-
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.7,
                     color: colors.onSurfaceVariant,
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 Container(
                   width: double.infinity,
-
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 12,
                   ),
-
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.06),
-
                     borderRadius: BorderRadius.circular(14),
                   ),
-
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-
                     children: [
                       Icon(
                         Icons.verified_outlined,
                         size: 17,
                         color: colors.primary,
                       ),
-
                       const SizedBox(width: 7),
-
                       Text(
                         'الإصدار 1.0.0',
                         style: TextStyle(
@@ -595,17 +603,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
-
                   child: FilledButton(
                     onPressed: () {
                       Navigator.pop(dialogContext);
                     },
-
                     child: const Text('إغلاق'),
                   ),
                 ),

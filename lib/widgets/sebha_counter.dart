@@ -32,8 +32,6 @@ class _SebhaCounterState extends State<SebhaCounter>
   late Animation<double> _completionScale;
   late Animation<double> _completionGlow;
 
-  bool _isCompleted = false;
-
   @override
   void initState() {
     super.initState();
@@ -76,7 +74,9 @@ class _SebhaCounterState extends State<SebhaCounter>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateAnimations(animate: false);
+      if (mounted) {
+        _updateAnimations(animate: false);
+      }
     });
   }
 
@@ -85,22 +85,21 @@ class _SebhaCounterState extends State<SebhaCounter>
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.count != widget.count || oldWidget.target != widget.target) {
-      _updateAnimations(animate: true);
+      final wasCompleted =
+          oldWidget.target > 0 && oldWidget.count >= oldWidget.target;
+
+      _updateAnimations(animate: true, wasCompleted: wasCompleted);
     }
   }
 
-  void _updateAnimations({required bool animate}) {
+  void _updateAnimations({required bool animate, bool wasCompleted = false}) {
     final completed = widget.target > 0 && widget.count >= widget.target;
 
-    final wasCompleted = _isCompleted;
-
-    _isCompleted = completed;
+    final progress = widget.target > 0
+        ? (widget.count / widget.target).clamp(0.0, 1.0)
+        : 0.0;
 
     if (animate) {
-      final progress = widget.target > 0
-          ? (widget.count / widget.target).clamp(0.0, 1.0)
-          : 0.0;
-
       _ringController.animateTo(
         progress,
         duration: const Duration(milliseconds: 380),
@@ -111,24 +110,23 @@ class _SebhaCounterState extends State<SebhaCounter>
         _playCompletion();
       }
     } else {
-      final progress = widget.target > 0
-          ? (widget.count / widget.target).clamp(0.0, 1.0)
-          : 0.0;
-
       _ringController.value = progress;
 
       if (completed) {
         _completionController.value = 1.0;
+      } else {
+        _completionController.value = 0.0;
       }
     }
   }
 
   Future<void> _handleTap() async {
-    if (_isCompleted) {
+    final completed = widget.target > 0 && widget.count >= widget.target;
+
+    if (completed) {
       return;
     }
 
-    // زوّد العداد فورًا
     widget.onTap();
 
     _tapController.forward(from: 0).then((_) {
@@ -145,7 +143,9 @@ class _SebhaCounterState extends State<SebhaCounter>
   Future<void> _handleReset() async {
     await _resetController.forward(from: 0);
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     widget.onReset();
 
@@ -166,10 +166,6 @@ class _SebhaCounterState extends State<SebhaCounter>
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    final double progress = widget.target > 0
-        ? (widget.count / widget.target).clamp(0.0, 1.0)
-        : 0.0;
-
     final bool completed = widget.target > 0 && widget.count >= widget.target;
 
     return Column(
@@ -180,7 +176,6 @@ class _SebhaCounterState extends State<SebhaCounter>
             _completionController,
             _resetController,
           ]),
-
           builder: (context, child) {
             final double pressScale = _tapScale.value;
 
@@ -202,10 +197,8 @@ class _SebhaCounterState extends State<SebhaCounter>
                 child: Container(
                   width: 286,
                   height: 286,
-
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-
                     boxShadow: [
                       BoxShadow(
                         color: colors.primary.withValues(alpha: glow),
@@ -214,57 +207,42 @@ class _SebhaCounterState extends State<SebhaCounter>
                       ),
                     ],
                   ),
-
                   child: GestureDetector(
                     onTap: completed ? null : _handleTap,
-
                     behavior: HitTestBehavior.opaque,
-
                     child: Stack(
                       alignment: Alignment.center,
-
                       children: [
                         SizedBox(
                           width: 270,
                           height: 270,
-
                           child: CustomPaint(
                             painter: _ProgressRingPainter(
                               progress: _ringController.value,
-
                               primaryColor: colors.primary,
-
                               trackColor: colors.primary.withValues(
                                 alpha: 0.09,
                               ),
-
                               strokeWidth: 11,
                             ),
                           ),
                         ),
-
                         Container(
                           width: 238,
                           height: 238,
-
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-
                             color: colors.surface,
-
                             border: Border.all(
                               color: colors.outlineVariant.withValues(
                                 alpha: 0.30,
                               ),
                               width: 1,
                             ),
-
                             boxShadow: [
                               BoxShadow(
                                 color: colors.shadow.withValues(alpha: 0.08),
-
                                 blurRadius: 25,
-
                                 offset: const Offset(0, 10),
                               ),
                             ],
@@ -277,7 +255,6 @@ class _SebhaCounterState extends State<SebhaCounter>
                             children: [
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 250),
-
                                 transitionBuilder: (child, animation) {
                                   return ScaleTransition(
                                     scale: animation,
@@ -287,46 +264,34 @@ class _SebhaCounterState extends State<SebhaCounter>
                                     ),
                                   );
                                 },
-
                                 child: Container(
                                   key: ValueKey(completed),
-
                                   width: 48,
                                   height: 48,
-
                                   decoration: BoxDecoration(
                                     color: colors.primary.withValues(
                                       alpha: completed ? 0.16 : 0.09,
                                     ),
-
                                     shape: BoxShape.circle,
                                   ),
-
                                   child: Icon(
                                     completed
                                         ? Icons.check_rounded
                                         : Icons.touch_app_rounded,
-
                                     size: 24,
-
                                     color: colors.primary,
                                   ),
                                 ),
                               ),
-
                               const SizedBox(height: 11),
-
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 180),
-
                                 reverseDuration: const Duration(
                                   milliseconds: 120,
                                 ),
-
                                 transitionBuilder: (child, animation) {
                                   return FadeTransition(
                                     opacity: animation,
-
                                     child: ScaleTransition(
                                       scale:
                                           Tween<double>(
@@ -338,17 +303,13 @@ class _SebhaCounterState extends State<SebhaCounter>
                                               curve: Curves.easeOutBack,
                                             ),
                                           ),
-
                                       child: child,
                                     ),
                                   );
                                 },
-
                                 child: Text(
                                   '${widget.count}',
-
                                   key: ValueKey(widget.count),
-
                                   style: TextStyle(
                                     fontSize: 56,
                                     height: 0.95,
@@ -358,23 +319,18 @@ class _SebhaCounterState extends State<SebhaCounter>
                                   ),
                                 ),
                               ),
-
                               const SizedBox(height: 10),
-
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 220),
-
                                 child: Text(
                                   completed
                                       ? 'أتممت الذكر ✓'
                                       : widget.target > 0
                                       ? 'من ${widget.target}'
                                       : 'ذكر مفتوح',
-
                                   key: ValueKey(
                                     '${completed}_${widget.target}',
                                   ),
-
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
@@ -387,25 +343,19 @@ class _SebhaCounterState extends State<SebhaCounter>
                             ],
                           ),
                         ),
-
                         IgnorePointer(
                           child: AnimatedBuilder(
                             animation: _tapController,
-
                             builder: (context, child) {
                               return Container(
                                 width: 210 + (_tapController.value * 18),
-
                                 height: 210 + (_tapController.value * 18),
-
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-
                                   border: Border.all(
                                     color: colors.primary.withValues(
                                       alpha: (1 - _tapController.value) * 0.14,
                                     ),
-
                                     width: 2,
                                   ),
                                 ),
@@ -421,12 +371,9 @@ class _SebhaCounterState extends State<SebhaCounter>
             );
           },
         ),
-
         const SizedBox(height: 20),
-
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
-
           transitionBuilder: (child, animation) {
             return FadeTransition(
               opacity: animation,
@@ -439,14 +386,11 @@ class _SebhaCounterState extends State<SebhaCounter>
               ),
             );
           },
-
           child: Text(
             completed
                 ? 'ما شاء الله، تم بحمد الله'
                 : 'اضغط على الدائرة للتسبيح',
-
             key: ValueKey(completed),
-
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -454,34 +398,24 @@ class _SebhaCounterState extends State<SebhaCounter>
             ),
           ),
         ),
-
         const SizedBox(height: 18),
-
         AnimatedBuilder(
           animation: _resetController,
-
           builder: (context, child) {
             return Opacity(
               opacity: 1 - (_resetController.value * 0.25),
-
               child: Transform.scale(
                 scale: 1 - (_resetController.value * 0.05),
-
                 child: child,
               ),
             );
           },
-
           child: OutlinedButton.icon(
             onPressed: _handleReset,
-
             icon: const Icon(Icons.refresh_rounded, size: 18),
-
             label: const Text('إعادة العداد'),
-
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),

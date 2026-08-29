@@ -15,11 +15,11 @@ class AzkarModel {
 
   factory AzkarModel.fromJson(Map<String, dynamic> json) {
     return AzkarModel(
-      id: json['id'] ?? 0,
-      category: json['category'] ?? '',
-      title: json['title'] ?? '',
-      text: json['text'] ?? '',
-      count: json['count'] ?? 1,
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      category: json['category']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      text: json['text']?.toString() ?? '',
+      count: int.tryParse(json['count']?.toString() ?? '') ?? 1,
     );
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class HomeHeader extends StatelessWidget {
-  final VoidCallback? onSettingsTap;
+  final VoidCallback onSettingsTap;
 
-  const HomeHeader({super.key, this.onSettingsTap});
+  const HomeHeader({super.key, required this.onSettingsTap});
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +11,6 @@ class HomeHeader extends StatelessWidget {
 
     return Row(
       children: [
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

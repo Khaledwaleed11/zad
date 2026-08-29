@@ -16,15 +16,19 @@ class QuranAyahModel {
   });
 
   factory QuranAyahModel.fromJson(Map<String, dynamic> json) {
-    final surah = json['surah'];
+    final rawSurah = json['surah'];
+
+    final Map<String, dynamic> surah = rawSurah is Map
+        ? Map<String, dynamic>.from(rawSurah)
+        : {};
 
     return QuranAyahModel(
-      text: json['text'] ?? '',
-      number: json['number'] ?? 0,
-      numberInSurah: json['numberInSurah'] ?? 0,
-      surahName: surah?['name'] ?? '',
-      surahNumber: surah?['number'] ?? 0,
-      revelationType: surah?['revelationType'] ?? '',
+      text: json['text']?.toString() ?? '',
+      number: int.tryParse(json['number']?.toString() ?? '') ?? 0,
+      numberInSurah: int.tryParse(json['numberInSurah']?.toString() ?? '') ?? 0,
+      surahName: surah['name']?.toString() ?? '',
+      surahNumber: int.tryParse(surah['number']?.toString() ?? '') ?? 0,
+      revelationType: surah['revelationType']?.toString() ?? '',
     );
   }
 }

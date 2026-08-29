@@ -64,8 +64,12 @@ class _QiblaScreenState extends State<QiblaScreen>
         setState(() {
           isLoading = true;
           errorMessage = null;
+          compassHeading = null;
         });
       }
+
+      await compassSubscription?.cancel();
+      compassSubscription = null;
 
       final position = await qiblaService.getCurrentPosition();
 
@@ -74,7 +78,9 @@ class _QiblaScreenState extends State<QiblaScreen>
         position.longitude,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         qiblaBearing = bearing;
@@ -85,7 +91,9 @@ class _QiblaScreenState extends State<QiblaScreen>
 
       _pageController.forward(from: 0);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         errorMessage = e.toString();
@@ -97,16 +105,50 @@ class _QiblaScreenState extends State<QiblaScreen>
   void startCompass() {
     compassSubscription?.cancel();
 
-    compassSubscription = FlutterCompass.events?.listen((event) {
-      final heading = event.heading;
+    final compassEvents = FlutterCompass.events;
 
-      if (heading == null) return;
-      if (!mounted) return;
+    if (compassEvents == null) {
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
-        compassHeading = heading;
+        errorMessage = 'حساس البوصلة غير متاح على هذا الجهاز.';
+        isLoading = false;
       });
-    });
+
+      return;
+    }
+
+    compassSubscription = compassEvents.listen(
+      (event) {
+        final heading = event.heading;
+
+        if (heading == null || !mounted) {
+          return;
+        }
+
+        if (compassHeading != null && (heading - compassHeading!).abs() < 0.5) {
+          return;
+        }
+
+        setState(() {
+          compassHeading = heading;
+          errorMessage = null;
+        });
+      },
+      onError: (error) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          errorMessage = 'تعذر الوصول إلى حساس البوصلة.';
+          isLoading = false;
+        });
+      },
+      cancelOnError: false,
+    );
   }
 
   double get qiblaRotation {
@@ -132,6 +174,10 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   bool get isAligned {
+    if (qiblaBearing == null || compassHeading == null) {
+      return false;
+    }
+
     return qiblaRotation.abs() <= 5;
   }
 
@@ -185,11 +231,9 @@ class _QiblaScreenState extends State<QiblaScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
-
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -206,18 +250,14 @@ class _QiblaScreenState extends State<QiblaScreen>
                 size: 21,
               ),
             ),
-
             const SizedBox(width: 10),
-
             const Text(
               'اتجاه القبلة',
               style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
             ),
           ],
         ),
-
         centerTitle: true,
-
         actions: [
           IconButton(
             onPressed: initializeQibla,
@@ -226,7 +266,6 @@ class _QiblaScreenState extends State<QiblaScreen>
           ),
         ],
       ),
-
       body: _buildBody(context, colors),
     );
   }
@@ -242,29 +281,19 @@ class _QiblaScreenState extends State<QiblaScreen>
 
     return FadeTransition(
       opacity: _fadeAnimation,
-
       child: SlideTransition(
         position: _slideAnimation,
-
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
-
           child: Column(
             children: [
               _buildHeroHeader(context, colors),
-
               const SizedBox(height: 18),
-
               _buildCompassSection(context, colors),
-
               const SizedBox(height: 18),
-
               _buildStatusCard(context, colors),
-
               const SizedBox(height: 14),
-
               Row(
                 children: [
                   Expanded(
@@ -276,9 +305,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                       value: '${qiblaBearing!.toStringAsFixed(1)}°',
                     ),
                   ),
-
                   const SizedBox(width: 12),
-
                   Expanded(
                     child: _buildInfoCard(
                       context,
@@ -290,13 +317,9 @@ class _QiblaScreenState extends State<QiblaScreen>
                   ),
                 ],
               ),
-
               const SizedBox(height: 14),
-
               _buildLocationCard(context, colors),
-
               const SizedBox(height: 14),
-
               _buildTipCard(context, colors),
             ],
           ),
@@ -308,9 +331,7 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildHeroHeader(BuildContext context, ColorScheme colors) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(20),
-
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topRight,
@@ -320,9 +341,7 @@ class _QiblaScreenState extends State<QiblaScreen>
             Color.lerp(colors.primary, colors.primaryContainer, 0.45)!,
           ],
         ),
-
         borderRadius: BorderRadius.circular(24),
-
         boxShadow: [
           BoxShadow(
             color: colors.primary.withValues(alpha: 0.15),
@@ -331,27 +350,22 @@ class _QiblaScreenState extends State<QiblaScreen>
           ),
         ],
       ),
-
       child: Row(
         children: [
           Container(
             width: 56,
             height: 56,
-
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.14),
               shape: BoxShape.circle,
             ),
-
             child: const Icon(
               Icons.explore_rounded,
               color: Colors.white,
               size: 30,
             ),
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,9 +378,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                     color: Colors.white70,
                   ),
                 ),
-
                 const SizedBox(height: 5),
-
                 const Text(
                   'اعرف اتجاه القبلة',
                   style: TextStyle(
@@ -375,9 +387,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   'حرّك هاتفك حتى يشير السهم إلى القبلة',
                   style: TextStyle(
@@ -395,20 +405,17 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildCompassSection(BuildContext context, ColorScheme colors) {
+    final hasCompass = compassHeading != null;
+
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.fromLTRB(15, 22, 15, 20),
-
       decoration: BoxDecoration(
         color: colors.surface,
-
         borderRadius: BorderRadius.circular(28),
-
         border: Border.all(
           color: colors.outlineVariant.withValues(alpha: 0.28),
         ),
-
         boxShadow: [
           BoxShadow(
             color: colors.shadow.withValues(alpha: 0.04),
@@ -417,42 +424,41 @@ class _QiblaScreenState extends State<QiblaScreen>
           ),
         ],
       ),
-
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-
             children: [
               Container(
                 width: 7,
                 height: 7,
-
                 decoration: BoxDecoration(
-                  color: colors.primary,
+                  color: hasCompass ? colors.primary : colors.onSurfaceVariant,
                   shape: BoxShape.circle,
                 ),
               ),
-
               const SizedBox(width: 7),
-
               Text(
-                isAligned ? 'أنت الآن على القبلة' : 'ابحث عن اتجاه القبلة',
-
+                !hasCompass
+                    ? 'جاري معايرة البوصلة...'
+                    : isAligned
+                    ? 'أنت الآن على القبلة'
+                    : 'ابحث عن اتجاه القبلة',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: isAligned ? colors.primary : colors.onSurfaceVariant,
+                  color: !hasCompass
+                      ? colors.onSurfaceVariant
+                      : isAligned
+                      ? colors.primary
+                      : colors.onSurfaceVariant,
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 18),
-
           AnimatedBuilder(
             animation: _pulseController,
-
             builder: (context, child) {
               final pulse = isAligned
                   ? 1 + (_pulseController.value * 0.015)
@@ -460,26 +466,26 @@ class _QiblaScreenState extends State<QiblaScreen>
 
               return Transform.scale(scale: pulse, child: child);
             },
-
             child: QiblaCompass(rotation: qiblaRotation),
           ),
-
           const SizedBox(height: 18),
-
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-
             child: Text(
-              isAligned
+              !hasCompass
+                  ? 'حرّك الهاتف وانتظر قراءة البوصلة'
+                  : isAligned
                   ? 'ممتاز، اتجاهك صحيح ✓'
                   : 'أدر الهاتف يمينًا أو يسارًا',
-
-              key: ValueKey(isAligned),
-
+              key: ValueKey('${hasCompass}_$isAligned'),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isAligned ? colors.primary : colors.onSurfaceVariant,
+                color: !hasCompass
+                    ? colors.onSurfaceVariant
+                    : isAligned
+                    ? colors.primary
+                    : colors.onSurfaceVariant,
               ),
             ),
           ),
@@ -491,75 +497,65 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildStatusCard(BuildContext context, ColorScheme colors) {
     final double rotation = qiblaRotation.abs();
 
+    final hasCompass = compassHeading != null;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-
       width: double.infinity,
-
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-
       decoration: BoxDecoration(
         color: isAligned
             ? colors.primary.withValues(alpha: 0.09)
             : colors.surface,
-
         borderRadius: BorderRadius.circular(18),
-
         border: Border.all(
           color: isAligned
               ? colors.primary.withValues(alpha: 0.18)
               : colors.outlineVariant.withValues(alpha: 0.28),
         ),
       ),
-
       child: Row(
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-
             width: 40,
             height: 40,
-
             decoration: BoxDecoration(
               color: isAligned
                   ? colors.primary
                   : colors.primary.withValues(alpha: 0.10),
-
               shape: BoxShape.circle,
             ),
-
             child: Icon(
               isAligned
                   ? Icons.check_rounded
                   : rotation < 30
                   ? Icons.navigation_rounded
                   : Icons.screen_rotation_alt_rounded,
-
               size: 20,
-
               color: isAligned ? colors.onPrimary : colors.primary,
             ),
           ),
-
           const SizedBox(width: 11),
-
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
-
               transitionBuilder: (child, animation) {
                 return FadeTransition(opacity: animation, child: child);
               },
-
               child: Text(
-                isAligned
+                !hasCompass
+                    ? 'في انتظار قراءة البوصلة'
+                    : isAligned
                     ? 'اتجاه القبلة مضبوط'
                     : 'تبقى ${rotation.toStringAsFixed(0)}° للوصول إلى القبلة',
-
                 key: ValueKey(
-                  isAligned ? 'aligned' : rotation.toStringAsFixed(0),
+                  !hasCompass
+                      ? 'waiting'
+                      : isAligned
+                      ? 'aligned'
+                      : rotation.toStringAsFixed(0),
                 ),
-
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -568,10 +564,8 @@ class _QiblaScreenState extends State<QiblaScreen>
               ),
             ),
           ),
-
           Text(
-            '${rotation.toStringAsFixed(0)}°',
-
+            hasCompass ? '${rotation.toStringAsFixed(0)}°' : '--°',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w900,
@@ -592,38 +586,28 @@ class _QiblaScreenState extends State<QiblaScreen>
   }) {
     return Container(
       padding: const EdgeInsets.all(15),
-
       decoration: BoxDecoration(
         color: colors.surface,
-
         borderRadius: BorderRadius.circular(18),
-
         border: Border.all(
           color: colors.outlineVariant.withValues(alpha: 0.28),
         ),
       ),
-
       child: Row(
         children: [
           Container(
             width: 38,
             height: 38,
-
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.10),
-
               borderRadius: BorderRadius.circular(11),
             ),
-
             child: Icon(icon, size: 18, color: colors.primary),
           ),
-
           const SizedBox(width: 9),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
                 Text(
                   title,
@@ -633,14 +617,11 @@ class _QiblaScreenState extends State<QiblaScreen>
                     color: colors.onSurfaceVariant,
                   ),
                 ),
-
                 const SizedBox(height: 3),
-
                 Text(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w900,
@@ -658,25 +639,18 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildLocationCard(BuildContext context, ColorScheme colors) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.055),
-
         borderRadius: BorderRadius.circular(17),
       ),
-
       child: Row(
         children: [
           Icon(Icons.location_on_rounded, size: 19, color: colors.primary),
-
           const SizedBox(width: 9),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
                 Text(
                   'الموقع الحالي',
@@ -686,9 +660,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                     color: colors.onSurfaceVariant,
                   ),
                 ),
-
                 const SizedBox(height: 2),
-
                 Text(
                   'تم تحديد موقعك وحساب اتجاه القبلة',
                   style: TextStyle(
@@ -700,7 +672,6 @@ class _QiblaScreenState extends State<QiblaScreen>
               ],
             ),
           ),
-
           Icon(Icons.check_circle_rounded, size: 19, color: colors.primary),
         ],
       ),
@@ -710,20 +681,16 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildTipCard(BuildContext context, ColorScheme colors) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-
       children: [
         Icon(
           Icons.info_outline_rounded,
           size: 17,
           color: colors.onSurfaceVariant,
         ),
-
         const SizedBox(width: 7),
-
         Expanded(
           child: Text(
             'للحصول على قراءة أدق، أبعد الهاتف عن المعادن والأجهزة الإلكترونية وحافظ عليه بشكل أفقي أثناء تحديد الاتجاه.',
-
             style: TextStyle(
               fontSize: 10,
               height: 1.5,
@@ -740,18 +707,14 @@ class _QiblaScreenState extends State<QiblaScreen>
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-
         children: [
           Container(
             width: 82,
             height: 82,
-
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.09),
-
               shape: BoxShape.circle,
             ),
-
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 3,
@@ -759,9 +722,7 @@ class _QiblaScreenState extends State<QiblaScreen>
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
           Text(
             'جاري تحديد اتجاه القبلة...',
             style: TextStyle(
@@ -770,9 +731,7 @@ class _QiblaScreenState extends State<QiblaScreen>
               color: colors.onSurface,
             ),
           ),
-
           const SizedBox(height: 6),
-
           Text(
             'اسمح للتطبيق بالوصول إلى موقعك',
             style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
@@ -783,62 +742,55 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildError(ColorScheme colors) {
+    final bool compassError =
+        errorMessage != null && errorMessage!.contains('البوصلة');
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-
           children: [
             Container(
               width: 84,
               height: 84,
-
               decoration: BoxDecoration(
                 color: colors.error.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-
               child: Icon(
-                Icons.explore_off_rounded,
+                compassError
+                    ? Icons.explore_off_rounded
+                    : Icons.location_off_rounded,
                 size: 40,
                 color: colors.error,
               ),
             ),
-
             const SizedBox(height: 18),
-
             Text(
-              'تعذر تحديد القبلة',
+              compassError ? 'البوصلة غير متاحة' : 'تعذر تحديد القبلة',
               style: TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.w900,
                 color: colors.onSurface,
               ),
             ),
-
             const SizedBox(height: 8),
-
             Text(
-              'تأكد من تشغيل الموقع ومنح التطبيق صلاحية الوصول إليه.',
-
+              compassError
+                  ? 'جهازك لا يوفر حساس بوصلة صالحًا للاستخدام.'
+                  : 'تأكد من تشغيل الموقع ومنح التطبيق صلاحية الوصول إليه.',
               textAlign: TextAlign.center,
-
               style: TextStyle(
                 fontSize: 12,
                 height: 1.5,
                 color: colors.onSurfaceVariant,
               ),
             ),
-
             const SizedBox(height: 20),
-
             FilledButton.icon(
               onPressed: initializeQibla,
-
               icon: const Icon(Icons.refresh_rounded),
-
               label: const Text('إعادة المحاولة'),
             ),
           ],

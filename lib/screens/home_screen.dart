@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:zad/screens/azkar_screen.dart';
 import 'package:zad/screens/prayer_times_screen.dart';
 import 'package:zad/screens/qibla_screen.dart';
@@ -6,6 +7,8 @@ import 'package:zad/screens/quran_screen.dart';
 import 'package:zad/screens/sebha_screen.dart';
 import 'package:zad/screens/setting_screen.dart';
 
+import '../services/notification_service.dart';
+import '../services/prayer_service.dart';
 import '../widgets/daily_ayah_card.dart';
 import '../widgets/home_header.dart';
 import '../widgets/prayer_card.dart';
@@ -88,6 +91,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     )..repeat(reverse: true);
 
     _entranceController.forward();
+
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    try {
+      final settingsBox = await Hive.openBox('settings');
+
+      final prayerEnabled =
+          settingsBox.get('prayerNotificationsEnabled', defaultValue: true)
+              as bool;
+
+      final azkarEnabled =
+          settingsBox.get('azkarNotificationsEnabled', defaultValue: true)
+              as bool;
+
+      if (prayerEnabled) {
+        try {
+          await PrayerService().scheduleUpcomingNotifications();
+        } catch (_) {}
+      } else {
+        await NotificationService.cancelPrayerNotifications();
+      }
+
+      if (azkarEnabled) {
+        try {
+          await NotificationService.scheduleAzkarNotifications();
+        } catch (_) {}
+      } else {
+        await NotificationService.cancelAzkarNotifications();
+      }
+    } catch (_) {}
   }
 
   @override
@@ -110,17 +145,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -141,11 +172,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
 
               _animatedSection(
                 slide: _headerSlide,
-                child: _buildWelcomeSection(context),
+                child: _buildDateCard(context),
               ),
 
               const SizedBox(height: 22),
@@ -170,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
               _animatedSection(
                 slide: _prayerSlide,
-                child: _SectionTitle(
+                child: const _SectionTitle(
                   title: 'مواقيت الصلاة',
                   subtitle: 'تابع صلاتك القادمة',
                   icon: Icons.access_time_rounded,
@@ -197,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
               _animatedSection(
                 slide: _quickSlide,
-                child: _SectionTitle(
+                child: const _SectionTitle(
                   title: 'استكشف زاد',
                   subtitle: 'عبادتك اليومية في مكان واحد',
                   icon: Icons.auto_awesome_rounded,
@@ -224,78 +255,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildWelcomeSection(BuildContext context) {
+  Widget _buildDateCard(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
     final now = DateTime.now();
 
     final formattedDate = '${now.day} / ${now.month} / ${now.year}';
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'أهلاً بك في زاد',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-
-              const SizedBox(height: 5),
-
-              Text(
-                'اجعل يومك أقرب إلى الله',
-                style: TextStyle(
-                  fontSize: 23,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                  color: colors.onSurface,
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: 0.30),
         ),
-
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(12),
-
-            border: Border.all(
-              color: colors.outlineVariant.withValues(alpha: 0.30),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.calendar_today_outlined, size: 15, color: colors.primary),
+          const SizedBox(width: 8),
+          Text(
+            'اليوم',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: colors.onSurfaceVariant,
             ),
           ),
-
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                size: 13,
-                color: colors.primary,
-              ),
-
-              const SizedBox(width: 6),
-
-              Text(
-                formattedDate,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-            ],
+          const Spacer(),
+          Text(
+            formattedDate,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: colors.onSurface,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -315,9 +314,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 );
               },
             ),
-
             const SizedBox(width: 12),
-
             QuickActionCard(
               icon: Icons.auto_awesome_rounded,
               title: 'الأذكار',
@@ -331,9 +328,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ],
         ),
-
         const SizedBox(height: 12),
-
         Row(
           children: [
             QuickActionCard(
@@ -347,9 +342,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 );
               },
             ),
-
             const SizedBox(width: 12),
-
             QuickActionCard(
               icon: Icons.touch_app_rounded,
               title: 'السبحة',
@@ -372,9 +365,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
-
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -384,36 +375,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             colors.secondary.withValues(alpha: 0.08),
           ],
         ),
-
         borderRadius: BorderRadius.circular(20),
-
         border: Border.all(color: colors.primary.withValues(alpha: 0.10)),
       ),
-
       child: Row(
         children: [
           Container(
             width: 42,
             height: 42,
-
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-
             child: Icon(
               Icons.favorite_rounded,
               color: colors.primary,
               size: 20,
             ),
           ),
-
           const SizedBox(width: 12),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
                 Text(
                   'لا تنسَ وردك اليوم',
@@ -423,9 +406,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     color: colors.onSurface,
                   ),
                 ),
-
                 const SizedBox(height: 3),
-
                 Text(
                   'خطوة صغيرة اليوم تصنع أثرًا كبيرًا.',
                   style: TextStyle(
@@ -438,7 +419,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-
           Icon(
             Icons.arrow_forward_ios_rounded,
             size: 13,
@@ -470,20 +450,15 @@ class _SectionTitle extends StatelessWidget {
         Container(
           width: 38,
           height: 38,
-
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(12),
           ),
-
           child: Icon(icon, size: 19, color: colors.primary),
         ),
-
         const SizedBox(width: 10),
-
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
             Text(
               title,
@@ -493,9 +468,7 @@ class _SectionTitle extends StatelessWidget {
                 color: colors.onSurface,
               ),
             ),
-
             const SizedBox(height: 2),
-
             Text(
               subtitle,
               style: TextStyle(

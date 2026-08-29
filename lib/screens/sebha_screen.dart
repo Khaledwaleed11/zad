@@ -77,8 +77,6 @@ class _SebhaScreenState extends State<SebhaScreen>
     _tapController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 180),
-      lowerBound: 0,
-      upperBound: 1,
     );
 
     _ambientController = AnimationController(
@@ -98,15 +96,13 @@ class _SebhaScreenState extends State<SebhaScreen>
 
   void loadSavedData() {
     final savedZikr = SebhaService.getZikr();
+    final savedCount = SebhaService.getCount();
+    final savedTarget = SebhaService.getTarget();
 
-    setState(() {
-      count = SebhaService.getCount();
-      target = SebhaService.getTarget();
-
-      selectedZikr = azkar.contains(savedZikr) ? savedZikr : azkar.first;
-
-      _isCompleted = target > 0 && count >= target;
-    });
+    count = savedCount;
+    target = savedTarget;
+    selectedZikr = azkar.contains(savedZikr) ? savedZikr : azkar.first;
+    _isCompleted = target > 0 && count >= target;
   }
 
   Future<void> increment() async {
@@ -134,14 +130,16 @@ class _SebhaScreenState extends State<SebhaScreen>
   Future<void> resetCounter() async {
     await _tapController.forward(from: 0);
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       count = 0;
       _isCompleted = false;
     });
 
-    _tapController.reverse();
+    await _tapController.reverse();
 
     _completionController.reset();
 
@@ -213,40 +211,31 @@ class _SebhaScreenState extends State<SebhaScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final colors = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
-
         title: Row(
           mainAxisSize: MainAxisSize.min,
-
           children: [
             AnimatedBuilder(
               animation: _ambientController,
-
               builder: (context, child) {
                 final rotation =
                     math.sin(_ambientController.value * math.pi * 2) * 0.025;
 
                 return Transform.rotate(angle: rotation, child: child);
               },
-
               child: Container(
                 width: 38,
                 height: 38,
-
                 decoration: BoxDecoration(
                   color: colors.primary.withValues(alpha: 0.10),
-
                   borderRadius: BorderRadius.circular(12),
                 ),
-
                 child: Icon(
                   Icons.fingerprint_rounded,
                   size: 20,
@@ -254,73 +243,53 @@ class _SebhaScreenState extends State<SebhaScreen>
                 ),
               ),
             ),
-
             const SizedBox(width: 10),
-
             const Text(
               'السبحة',
               style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
             ),
           ],
         ),
-
         centerTitle: true,
       ),
-
       body: FadeTransition(
         opacity: _pageFade,
-
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
-
           child: Column(
             children: [
               _animatedSection(
                 animation: _heroSlide,
                 child: _buildHeroHeader(colors),
               ),
-
               const SizedBox(height: 18),
-
               _animatedSection(
                 animation: _selectorSlide,
                 child: Column(
                   children: [
                     _buildZikrSelector(context, colors),
-
                     const SizedBox(height: 12),
-
                     _buildTargetSelector(context, colors),
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
               _animatedSection(
                 animation: _counterSlide,
                 child: _buildCurrentZikr(colors),
               ),
-
               const SizedBox(height: 16),
-
               _animatedSection(
                 animation: _counterSlide,
-
                 child: _buildCounterArea(context, colors),
               ),
-
               const SizedBox(height: 20),
-
               _animatedSection(
                 animation: _counterSlide,
                 child: _buildProgress(colors),
               ),
-
               const SizedBox(height: 16),
-
               _animatedSection(
                 animation: _counterSlide,
                 child: _buildTip(colors),
@@ -345,15 +314,12 @@ class _SebhaScreenState extends State<SebhaScreen>
   Widget _buildHeroHeader(ColorScheme colors) {
     return AnimatedBuilder(
       animation: _ambientController,
-
       builder: (context, child) {
         final glow = 0.10 + (_ambientController.value * 0.05);
 
         return Container(
           width: double.infinity,
-
           padding: const EdgeInsets.all(20),
-
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topRight,
@@ -363,9 +329,7 @@ class _SebhaScreenState extends State<SebhaScreen>
                 Color.lerp(colors.primary, colors.primaryContainer, 0.45)!,
               ],
             ),
-
             borderRadius: BorderRadius.circular(24),
-
             boxShadow: [
               BoxShadow(
                 color: colors.primary.withValues(alpha: glow),
@@ -374,36 +338,28 @@ class _SebhaScreenState extends State<SebhaScreen>
               ),
             ],
           ),
-
           child: child,
         );
       },
-
       child: Row(
         children: [
           Container(
             width: 56,
             height: 56,
-
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.13),
-
               shape: BoxShape.circle,
             ),
-
             child: const Icon(
               Icons.fingerprint_rounded,
               color: Colors.white,
               size: 30,
             ),
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
                 const Text(
                   'اذكر الله يطمئن قلبك',
@@ -413,9 +369,7 @@ class _SebhaScreenState extends State<SebhaScreen>
                     color: Colors.white70,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 const Text(
                   'سبّح واطمئن',
                   style: TextStyle(
@@ -424,9 +378,7 @@ class _SebhaScreenState extends State<SebhaScreen>
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 const Text(
                   'ذكر بسيط • أثر كبير',
                   style: TextStyle(
@@ -438,7 +390,6 @@ class _SebhaScreenState extends State<SebhaScreen>
               ],
             ),
           ),
-
           const Icon(
             Icons.auto_awesome_rounded,
             size: 19,
@@ -452,22 +403,16 @@ class _SebhaScreenState extends State<SebhaScreen>
   Widget _buildZikrSelector(BuildContext context, ColorScheme colors) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
         color: colors.surface,
-
         borderRadius: BorderRadius.circular(20),
-
         border: Border.all(
           color: colors.outlineVariant.withValues(alpha: 0.28),
         ),
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
         children: [
           Text(
             'اختر الذكر',
@@ -477,34 +422,25 @@ class _SebhaScreenState extends State<SebhaScreen>
               color: colors.onSurfaceVariant,
             ),
           ),
-
           const SizedBox(height: 10),
-
           DropdownButtonFormField<String>(
-            value: selectedZikr,
-
+            initialValue: selectedZikr,
             isExpanded: true,
-
             icon: Icon(
               Icons.keyboard_arrow_down_rounded,
               color: colors.primary,
             ),
-
             decoration: InputDecoration(
               filled: true,
-
               fillColor: colors.surfaceContainerLow,
-
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 13,
               ),
-
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
               ),
-
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
@@ -512,16 +448,12 @@ class _SebhaScreenState extends State<SebhaScreen>
                 ),
               ),
             ),
-
             items: azkar.map((zikr) {
               return DropdownMenuItem<String>(
                 value: zikr,
-
                 child: Text(
                   zikr,
-
                   textDirection: TextDirection.rtl,
-
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -530,7 +462,6 @@ class _SebhaScreenState extends State<SebhaScreen>
                 ),
               );
             }).toList(),
-
             onChanged: (value) {
               if (value != null) {
                 changeZikr(value);
@@ -545,40 +476,29 @@ class _SebhaScreenState extends State<SebhaScreen>
   Widget _buildTargetSelector(BuildContext context, ColorScheme colors) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
         color: colors.surface,
-
         borderRadius: BorderRadius.circular(20),
-
         border: Border.all(
           color: colors.outlineVariant.withValues(alpha: 0.28),
         ),
       ),
-
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
-
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.10),
-
               borderRadius: BorderRadius.circular(12),
             ),
-
             child: Icon(Icons.flag_outlined, color: colors.primary, size: 20),
           ),
-
           const SizedBox(width: 11),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
                 Text(
                   'هدف التسبيح',
@@ -588,12 +508,9 @@ class _SebhaScreenState extends State<SebhaScreen>
                     color: colors.onSurface,
                   ),
                 ),
-
                 const SizedBox(height: 3),
-
                 Text(
                   target == 33 ? '33 مرة' : '99 مرة',
-
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
@@ -603,26 +520,20 @@ class _SebhaScreenState extends State<SebhaScreen>
               ],
             ),
           ),
-
           SegmentedButton<int>(
             segments: const [
               ButtonSegment<int>(value: 33, label: Text('33')),
               ButtonSegment<int>(value: 99, label: Text('99')),
             ],
-
             selected: {target},
-
             onSelectionChanged: (selection) {
               if (selection.isNotEmpty) {
                 changeTarget(selection.first);
               }
             },
-
             showSelectedIcon: false,
-
             style: ButtonStyle(
               visualDensity: VisualDensity.compact,
-
               textStyle: WidgetStateProperty.all(
                 const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
               ),
@@ -636,33 +547,24 @@ class _SebhaScreenState extends State<SebhaScreen>
   Widget _buildCurrentZikr(ColorScheme colors) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 350),
-
       transitionBuilder: (child, animation) {
         return FadeTransition(
           opacity: animation,
           child: ScaleTransition(
             scale: Tween<double>(begin: 0.94, end: 1.0).animate(animation),
-
             child: child,
           ),
         );
       },
-
       child: Container(
         key: ValueKey(selectedZikr),
-
         width: double.infinity,
-
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-
         decoration: BoxDecoration(
           color: colors.primary.withValues(alpha: 0.055),
-
           borderRadius: BorderRadius.circular(20),
-
           border: Border.all(color: colors.primary.withValues(alpha: 0.12)),
         ),
-
         child: Column(
           children: [
             Text(
@@ -673,16 +575,11 @@ class _SebhaScreenState extends State<SebhaScreen>
                 color: colors.onSurfaceVariant,
               ),
             ),
-
             const SizedBox(height: 8),
-
             Text(
               selectedZikr,
-
               textDirection: TextDirection.rtl,
-
               textAlign: TextAlign.center,
-
               style: TextStyle(
                 fontSize: 28,
                 height: 1.35,
@@ -703,7 +600,6 @@ class _SebhaScreenState extends State<SebhaScreen>
         _ambientController,
         _completionController,
       ]),
-
       builder: (context, child) {
         final tapScale = 1 - (_tapController.value * 0.035);
 
@@ -715,13 +611,10 @@ class _SebhaScreenState extends State<SebhaScreen>
 
         return Transform.scale(
           scale: tapScale * completionScale,
-
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
-
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
-
               boxShadow: [
                 BoxShadow(
                   color: colors.primary.withValues(
@@ -729,43 +622,16 @@ class _SebhaScreenState extends State<SebhaScreen>
                         ? 0.14 + (_completionController.value * 0.10)
                         : glow,
                   ),
-
                   blurRadius: _isCompleted ? 32 : 20,
-
                   spreadRadius: _isCompleted ? 2 : 0,
                 ),
               ],
             ),
-
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 170),
-
-              transitionBuilder: (child, animation) {
-                return FadeTransition(
-                  opacity: animation,
-
-                  child: ScaleTransition(
-                    scale: Tween<double>(
-                      begin: 0.92,
-                      end: 1.0,
-                    ).animate(animation),
-
-                    child: child,
-                  ),
-                );
-              },
-
-              child: SebhaCounter(
-                key: ValueKey('$count-$target'),
-
-                count: count,
-
-                target: target,
-
-                onTap: increment,
-
-                onReset: resetCounter,
-              ),
+            child: SebhaCounter(
+              count: count,
+              target: target,
+              onTap: increment,
+              onReset: resetCounter,
             ),
           ),
         );
@@ -776,31 +642,23 @@ class _SebhaScreenState extends State<SebhaScreen>
   Widget _buildProgress(ColorScheme colors) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
         color: colors.surface,
-
         borderRadius: BorderRadius.circular(18),
-
         border: Border.all(
           color: colors.outlineVariant.withValues(alpha: 0.28),
         ),
       ),
-
       child: Column(
         children: [
           Row(
             children: [
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
-
                 child: Text(
                   _isCompleted ? 'تم إكمال الهدف ✓' : 'التقدم',
-
                   key: ValueKey(_isCompleted),
-
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -808,17 +666,12 @@ class _SebhaScreenState extends State<SebhaScreen>
                   ),
                 ),
               ),
-
               const Spacer(),
-
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 150),
-
                 child: Text(
                   '$count / $target',
-
                   key: ValueKey(count),
-
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
@@ -828,45 +681,31 @@ class _SebhaScreenState extends State<SebhaScreen>
               ),
             ],
           ),
-
           const SizedBox(height: 10),
-
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: progress),
-
             duration: const Duration(milliseconds: 350),
-
             curve: Curves.easeOutCubic,
-
             builder: (context, value, child) {
               return ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-
                 child: LinearProgressIndicator(
                   value: value,
-
                   minHeight: 7,
-
                   backgroundColor: colors.primary.withValues(alpha: 0.08),
-
                   color: colors.primary,
                 ),
               );
             },
           ),
-
           const SizedBox(height: 8),
-
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
-
             child: Text(
               _isCompleted
                   ? 'ما شاء الله، تم بحمد الله'
                   : 'متبقي $remaining مرة',
-
               key: ValueKey(_isCompleted ? 'done' : remaining),
-
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
@@ -882,31 +721,22 @@ class _SebhaScreenState extends State<SebhaScreen>
   Widget _buildTip(ColorScheme colors) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.07),
-
         borderRadius: BorderRadius.circular(16),
       ),
-
       child: Row(
         children: [
           Icon(
             Icons.lightbulb_outline_rounded,
-
             size: 18,
-
             color: colors.primary,
           ),
-
           const SizedBox(width: 8),
-
           Expanded(
             child: Text(
               'سيتم حفظ تقدمك تلقائيًا حتى بعد إغلاق التطبيق.',
-
               style: TextStyle(
                 fontSize: 11,
                 height: 1.5,

@@ -5,29 +5,42 @@ import '../models/surah_model.dart';
 class QuranService {
   final QuranApiService apiService = QuranApiService();
 
-
-
   Future<QuranAyahModel> getRandomAyah() async {
     final data = await apiService.getRandomAyah();
 
-    final ayahData = data['data'] as Map<String, dynamic>;
+    final rawAyah = data['data'];
 
-    return QuranAyahModel.fromJson(ayahData);
+    if (rawAyah is! Map) {
+      throw Exception('Invalid ayah response');
+    }
+
+    return QuranAyahModel.fromJson(Map<String, dynamic>.from(rawAyah));
   }
-
 
   Future<List<SurahModel>> getAllSurahs() async {
     final data = await apiService.getAllSurahs();
 
-    final List surahs = data['data'] ?? [];
+    final rawSurahs = data['data'];
 
-    return surahs.map((surah) => SurahModel.fromJson(surah)).toList();
+    if (rawSurahs is! List) {
+      throw Exception('Invalid surahs response');
+    }
+
+    return rawSurahs
+        .whereType<Map>()
+        .map((surah) => SurahModel.fromJson(Map<String, dynamic>.from(surah)))
+        .toList();
   }
-
 
   Future<Map<String, dynamic>> getSurah(int surahNumber) async {
     final data = await apiService.getSurah(surahNumber);
 
-    return data['data'] as Map<String, dynamic>;
+    final rawSurah = data['data'];
+
+    if (rawSurah is! Map) {
+      throw Exception('Invalid surah response');
+    }
+
+    return Map<String, dynamic>.from(rawSurah);
   }
 }

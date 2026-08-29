@@ -19,13 +19,13 @@ class PrayerTimesModel {
 
   factory PrayerTimesModel.fromJson(Map<String, dynamic> json) {
     return PrayerTimesModel(
-      fajr: json['Fajr'] ?? '--:--',
-      sunrise: json['Sunrise'] ?? '--:--',
-      dhuhr: json['Dhuhr'] ?? '--:--',
-      asr: json['Asr'] ?? '--:--',
-      sunset: json['Sunset'] ?? '--:--',
-      maghrib: json['Maghrib'] ?? '--:--',
-      isha: json['Isha'] ?? '--:--',
+      fajr: json['Fajr']?.toString() ?? '--:--',
+      sunrise: json['Sunrise']?.toString() ?? '--:--',
+      dhuhr: json['Dhuhr']?.toString() ?? '--:--',
+      asr: json['Asr']?.toString() ?? '--:--',
+      sunset: json['Sunset']?.toString() ?? '--:--',
+      maghrib: json['Maghrib']?.toString() ?? '--:--',
+      isha: json['Isha']?.toString() ?? '--:--',
     );
   }
 }

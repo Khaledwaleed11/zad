@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../services/notification_service.dart';
 import 'main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -26,7 +27,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   late Animation<double> logoScale;
   late Animation<double> logoFade;
-
   late Animation<double> contentFade;
   late Animation<Offset> contentSlide;
 
@@ -81,21 +81,20 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void openMainScreen() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 650),
-
         reverseTransitionDuration: const Duration(milliseconds: 350),
-
         pageBuilder: (context, animation, secondaryAnimation) {
           return MainScreen(
             isDarkMode: widget.isDarkMode,
             onThemeToggle: widget.onThemeToggle,
           );
         },
-
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curvedAnimation = CurvedAnimation(
             parent: animation,
@@ -115,6 +114,14 @@ class _SplashScreenState extends State<SplashScreen>
         },
       ),
     );
+
+    Future.delayed(const Duration(milliseconds: 750), () {
+      if (!mounted) {
+        return;
+      }
+
+      NotificationService.handlePendingNotification();
+    });
   }
 
   @override
@@ -155,7 +162,6 @@ class _SplashScreenState extends State<SplashScreen>
             colors: [backgroundColor, secondBackgroundColor],
           ),
         ),
-
         child: SafeArea(
           child: Stack(
             children: [
@@ -178,29 +184,22 @@ class _SplashScreenState extends State<SplashScreen>
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-
                   children: [
                     FadeTransition(
                       opacity: logoFade,
-
                       child: ScaleTransition(
                         scale: logoScale,
-
                         child: AnimatedBuilder(
                           animation: pulseController,
-
                           builder: (context, child) {
                             final glow = 0.16 + (pulseController.value * 0.08);
 
                             return Container(
                               width: 124,
                               height: 124,
-
                               decoration: BoxDecoration(
                                 color: primaryColor,
-
                                 borderRadius: BorderRadius.circular(36),
-
                                 boxShadow: [
                                   BoxShadow(
                                     color: primaryColor.withValues(alpha: glow),
@@ -210,21 +209,17 @@ class _SplashScreenState extends State<SplashScreen>
                                   ),
                                 ],
                               ),
-
                               child: Stack(
                                 alignment: Alignment.center,
-
                                 children: [
                                   Icon(
                                     Icons.menu_book_rounded,
                                     size: 56,
                                     color: colors.onPrimary,
                                   ),
-
                                   Positioned(
                                     top: 22,
                                     right: 28,
-
                                     child: Icon(
                                       Icons.auto_awesome_rounded,
                                       size: 18,
@@ -240,13 +235,11 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 30),
                     FadeTransition(
                       opacity: contentFade,
                       child: SlideTransition(
                         position: contentSlide,
-
                         child: Column(
                           children: [
                             Text(
@@ -258,9 +251,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 color: titleColor,
                               ),
                             ),
-
                             const SizedBox(height: 8),
-
                             Text(
                               'زادك في طريقك إلى الله',
                               style: TextStyle(
@@ -269,9 +260,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 color: subtitleColor,
                               ),
                             ),
-
                             const SizedBox(height: 6),
-
                             Text(
                               'قرآن • أذكار • صلاة • قبلة',
                               style: TextStyle(
@@ -288,29 +277,23 @@ class _SplashScreenState extends State<SplashScreen>
                   ],
                 ),
               ),
-
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 28,
-
                 child: FadeTransition(
                   opacity: contentFade,
-
                   child: Column(
                     children: [
                       SizedBox(
                         width: 28,
                         height: 28,
-
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
                           color: primaryColor,
                         ),
                       ),
-
                       const SizedBox(height: 10),
-
                       Text(
                         'جاري تجهيز زاد...',
                         style: TextStyle(
@@ -334,7 +317,6 @@ class _SplashScreenState extends State<SplashScreen>
     return Container(
       width: size,
       height: size,
-
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }

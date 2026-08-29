@@ -47,13 +47,22 @@ class _SurahScreenState extends State<SurahScreen>
 
       final data = await quranService.getSurah(widget.surah.number);
 
-      final List rawAyahs = data['ayahs'] ?? [];
+      final rawAyahs = data['ayahs'];
+
+      if (rawAyahs is! List) {
+        throw Exception('Invalid ayahs response');
+      }
 
       final loadedAyahs = rawAyahs
-          .map((ayah) => QuranAyahModel.fromJson(ayah))
+          .whereType<Map>()
+          .map(
+            (ayah) => QuranAyahModel.fromJson(Map<String, dynamic>.from(ayah)),
+          )
           .toList();
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         ayahs = loadedAyahs;
@@ -62,7 +71,9 @@ class _SurahScreenState extends State<SurahScreen>
 
       _animationController.forward(from: 0);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         errorMessage = e.toString();
@@ -355,19 +366,19 @@ class _SurahScreenState extends State<SurahScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-              _LoadingBox(width: 34, height: 34),
+              _buildLoadingBox(width: 34, height: 34),
 
               const SizedBox(height: 20),
 
-              _LoadingBox(width: double.infinity, height: 18),
+              _buildLoadingBox(width: double.infinity, height: 18),
 
               const SizedBox(height: 10),
 
-              _LoadingBox(width: 260, height: 18),
+              _buildLoadingBox(width: 260, height: 18),
 
               const SizedBox(height: 10),
 
-              _LoadingBox(width: 190, height: 18),
+              _buildLoadingBox(width: 190, height: 18),
             ],
           ),
         );
@@ -375,7 +386,7 @@ class _SurahScreenState extends State<SurahScreen>
     );
   }
 
-  Widget _LoadingBox({required double width, required double height}) {
+  Widget _buildLoadingBox({required double width, required double height}) {
     final colors = Theme.of(context).colorScheme;
 
     return Container(
