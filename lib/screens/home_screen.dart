@@ -110,19 +110,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (prayerEnabled) {
         try {
           await PrayerService().scheduleUpcomingNotifications();
-        } catch (_) {}
+
+          debugPrint('ZAD: Prayer notifications scheduled successfully.');
+        } catch (e) {
+          debugPrint('ZAD: Prayer notification scheduling failed: $e');
+        }
       } else {
         await NotificationService.cancelPrayerNotifications();
+
+        debugPrint('ZAD: Prayer notifications disabled.');
       }
 
       if (azkarEnabled) {
         try {
           await NotificationService.scheduleAzkarNotifications();
-        } catch (_) {}
+
+          debugPrint('ZAD: Azkar notifications scheduled successfully.');
+        } catch (e) {
+          debugPrint('ZAD: Azkar notification scheduling failed: $e');
+        }
       } else {
         await NotificationService.cancelAzkarNotifications();
+
+        debugPrint('ZAD: Azkar notifications disabled.');
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('ZAD: Notification initialization failed: $e');
+    }
   }
 
   @override

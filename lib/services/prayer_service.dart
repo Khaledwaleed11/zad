@@ -34,6 +34,7 @@ class PrayerService {
 
     if (!enabled) {
       await NotificationService.cancelPrayerNotifications();
+
       return;
     }
 

@@ -30,6 +30,8 @@ class NotificationService {
         channelDescription: 'Prayer time notifications',
         importance: Importance.high,
         priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
       );
 
   static const AndroidNotificationDetails _azkarAndroidDetails =
@@ -39,6 +41,8 @@ class NotificationService {
         channelDescription: 'Daily Azkar reminders',
         importance: Importance.high,
         priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
       );
 
   static Future<void> initialize() async {
@@ -72,7 +76,31 @@ class NotificationService {
         >();
 
     await androidPlugin?.requestNotificationsPermission();
+
     await androidPlugin?.requestExactAlarmsPermission();
+  }
+
+  static Future<bool> _canUseExactAlarms() async {
+    final androidPlugin =
+    _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidPlugin == null) {
+      return false;
+    }
+
+    final canSchedule =
+    await androidPlugin.canScheduleExactNotifications();
+
+    return canSchedule == true;
+  }
+
+  static AndroidScheduleMode _getScheduleMode(bool exactAvailable) {
+    if (exactAvailable) {
+      return AndroidScheduleMode.exactAllowWhileIdle;
+    }
+
+    return AndroidScheduleMode.inexactAllowWhileIdle;
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
@@ -165,10 +193,18 @@ class NotificationService {
       _PrayerNotification(id: 105, name: 'العشاء', time: prayerTimes.isha),
     ];
 
+    final exactAvailable = await _canUseExactAlarms();
+
+    final scheduleMode = _getScheduleMode(exactAvailable);
+
     for (final prayer in prayers) {
       final scheduledDate = _buildPrayerDateTime(prayer.time, now);
 
-      if (scheduledDate == null || !scheduledDate.isAfter(now)) {
+      if (scheduledDate == null) {
+        continue;
+      }
+
+      if (!scheduledDate.isAfter(now)) {
         continue;
       }
 
@@ -181,7 +217,7 @@ class NotificationService {
         notificationDetails: const NotificationDetails(
           android: _prayerAndroidDetails,
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
       );
     }
   }
@@ -192,12 +228,19 @@ class NotificationService {
   ) async {
     await cancelPrayerNotifications();
 
-    await _scheduleCalendar(currentMonth);
+    final exactAvailable = await _canUseExactAlarms();
 
-    await _scheduleCalendar(nextMonth);
+    final scheduleMode = _getScheduleMode(exactAvailable);
+
+    await _scheduleCalendar(currentMonth, scheduleMode);
+
+    await _scheduleCalendar(nextMonth, scheduleMode);
   }
 
-  static Future<void> _scheduleCalendar(Map<String, dynamic> calendar) async {
+  static Future<void> _scheduleCalendar(
+    Map<String, dynamic> calendar,
+    AndroidScheduleMode scheduleMode,
+  ) async {
     final data = calendar['data'];
 
     if (data is! List) {
@@ -237,6 +280,7 @@ class NotificationService {
         name: 'الفجر',
         time: prayerTimes.fajr,
         dateString: dateString,
+        scheduleMode: scheduleMode,
       );
 
       await _schedulePrayer(
@@ -244,6 +288,7 @@ class NotificationService {
         name: 'الظهر',
         time: prayerTimes.dhuhr,
         dateString: dateString,
+        scheduleMode: scheduleMode,
       );
 
       await _schedulePrayer(
@@ -251,6 +296,7 @@ class NotificationService {
         name: 'العصر',
         time: prayerTimes.asr,
         dateString: dateString,
+        scheduleMode: scheduleMode,
       );
 
       await _schedulePrayer(
@@ -258,6 +304,7 @@ class NotificationService {
         name: 'المغرب',
         time: prayerTimes.maghrib,
         dateString: dateString,
+        scheduleMode: scheduleMode,
       );
 
       await _schedulePrayer(
@@ -265,6 +312,7 @@ class NotificationService {
         name: 'العشاء',
         time: prayerTimes.isha,
         dateString: dateString,
+        scheduleMode: scheduleMode,
       );
     }
   }
@@ -274,6 +322,7 @@ class NotificationService {
     required String name,
     required String time,
     required String dateString,
+    required AndroidScheduleMode scheduleMode,
   }) async {
     final scheduledDate = _buildDateTime(dateString, time);
 
@@ -296,7 +345,7 @@ class NotificationService {
       notificationDetails: const NotificationDetails(
         android: _prayerAndroidDetails,
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
     );
   }
 
@@ -311,6 +360,10 @@ class NotificationService {
 
     final sleep = _nextDailyTime(now, 23, 0);
 
+    final exactAvailable = await _canUseExactAlarms();
+
+    final scheduleMode = _getScheduleMode(exactAvailable);
+
     const details = NotificationDetails(android: _azkarAndroidDetails);
 
     await _notifications.zonedSchedule(
@@ -320,7 +373,7 @@ class NotificationService {
       payload: 'azkar_morning',
       scheduledDate: morning,
       notificationDetails: details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       matchDateTimeComponents: DateTimeComponents.time,
     );
 
@@ -331,7 +384,7 @@ class NotificationService {
       payload: 'azkar_evening',
       scheduledDate: evening,
       notificationDetails: details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       matchDateTimeComponents: DateTimeComponents.time,
     );
 
@@ -342,7 +395,7 @@ class NotificationService {
       payload: 'azkar_sleep',
       scheduledDate: sleep,
       notificationDetails: details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
@@ -375,6 +428,10 @@ class NotificationService {
       final hour = int.parse(parts[0]);
 
       final minute = int.parse(parts[1]);
+
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        return null;
+      }
 
       return tz.TZDateTime(
         tz.local,
@@ -409,6 +466,17 @@ class NotificationService {
 
       final minute = int.parse(timeParts[1]);
 
+      if (hour < 0 ||
+          hour > 23 ||
+          minute < 0 ||
+          minute > 59 ||
+          day < 1 ||
+          day > 31 ||
+          month < 1 ||
+          month > 12) {
+        return null;
+      }
+
       return tz.TZDateTime(tz.local, year, month, day, hour, minute);
     } catch (_) {
       return null;
@@ -440,6 +508,28 @@ class NotificationService {
     await _notifications.cancel(id: _eveningAzkarId);
 
     await _notifications.cancel(id: _sleepAzkarId);
+  }
+
+  static Future<void> testNotification() async {
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'zad_test_channel',
+        'Test Notifications',
+        channelDescription: 'Test notification channel',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
+
+    await _notifications.show(
+      id: 999,
+      title: 'ZAD ✅',
+      body: 'الإشعارات شغالة تمام.',
+      notificationDetails: details,
+      payload: 'prayer',
+    );
   }
 }
 
