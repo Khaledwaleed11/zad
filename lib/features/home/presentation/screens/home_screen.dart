@@ -3,6 +3,7 @@ import 'package:zad/features/prayer_times/presentation/screens/prayer_times_scre
 import 'package:zad/features/settings/presentation/screens/setting_screen.dart';
 
 import '../../../../core/dependency_injection/injection_container.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../notifications/domain/usecases/initialize_notifications.dart';
 
 import '../widgets/daily_ayah_card.dart';
@@ -138,9 +139,15 @@ class _HomeScreenState extends State<HomeScreen>
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: Center(
+              child: SizedBox(
+                width: Responsive.contentWidth(
+                  context,
+                  maxWidth: 700,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 _animatedSection(
                   slide: _headerSlide,
                   child: HomeHeader(
@@ -236,6 +243,8 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ),
+        )
+      )
     );
   }
 

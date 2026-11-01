@@ -168,261 +168,303 @@ class _SebhaCounterState extends State<SebhaCounter>
 
     final bool completed = widget.target > 0 && widget.count >= widget.target;
 
-    return Column(
-      children: [
-        AnimatedBuilder(
-          animation: Listenable.merge([
-            _tapController,
-            _completionController,
-            _resetController,
-          ]),
-          builder: (context, child) {
-            final double pressScale = _tapScale.value;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : 286.0;
 
-            final double completionScale = completed
-                ? _completionScale.value
-                : 1.0;
+        final counterSize = math.min(286.0, availableWidth);
 
-            final double resetRotation = _resetController.value * math.pi;
-
-            final double scale = pressScale * completionScale;
-
-            final double glow =
-                (_tapGlow.value * 0.14) + (_completionGlow.value * 0.20);
-
-            return Transform.rotate(
-              angle: resetRotation,
-              child: Transform.scale(
-                scale: scale,
-                child: Container(
+        return Column(
+          children: [
+            SizedBox(
+              width: counterSize,
+              height: counterSize,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: SizedBox(
                   width: 286,
                   height: 286,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: glow),
-                        blurRadius: 34 + (_completionGlow.value * 10),
-                        spreadRadius: _completionGlow.value * 3,
-                      ),
-                    ],
-                  ),
-                  child: GestureDetector(
-                    onTap: completed ? null : _handleTap,
-                    behavior: HitTestBehavior.opaque,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        SizedBox(
-                          width: 270,
-                          height: 270,
-                          child: CustomPaint(
-                            painter: _ProgressRingPainter(
-                              progress: _ringController.value,
-                              primaryColor: colors.primary,
-                              trackColor: colors.primary.withValues(
-                                alpha: 0.09,
-                              ),
-                              strokeWidth: 11,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 238,
-                          height: 238,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: colors.surface,
-                            border: Border.all(
-                              color: colors.outlineVariant.withValues(
-                                alpha: 0.30,
-                              ),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: colors.shadow.withValues(alpha: 0.08),
-                                blurRadius: 25,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          width: 200,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 250),
-                                transitionBuilder: (child, animation) {
-                                  return ScaleTransition(
-                                    scale: animation,
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  key: ValueKey(completed),
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: colors.primary.withValues(
-                                      alpha: completed ? 0.16 : 0.09,
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    completed
-                                        ? Icons.check_rounded
-                                        : Icons.touch_app_rounded,
-                                    size: 24,
-                                    color: colors.primary,
-                                  ),
+                  child: AnimatedBuilder(
+                    animation: Listenable.merge([
+                      _tapController,
+                      _completionController,
+                      _resetController,
+                    ]),
+                    builder: (context, child) {
+                      final double pressScale = _tapScale.value;
+
+                      final double completionScale = completed
+                          ? _completionScale.value
+                          : 1.0;
+
+                      final double resetRotation =
+                          _resetController.value * math.pi;
+
+                      final double scale = pressScale * completionScale;
+
+                      final double glow =
+                          (_tapGlow.value * 0.14) +
+                          (_completionGlow.value * 0.20);
+
+                      return Transform.rotate(
+                        angle: resetRotation,
+                        child: Transform.scale(
+                          scale: scale,
+                          child: Container(
+                            width: 286,
+                            height: 286,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colors.primary.withValues(alpha: glow),
+                                  blurRadius: 34 + (_completionGlow.value * 10),
+                                  spreadRadius: _completionGlow.value * 3,
                                 ),
-                              ),
-                              const SizedBox(height: 11),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 180),
-                                reverseDuration: const Duration(
-                                  milliseconds: 120,
-                                ),
-                                transitionBuilder: (child, animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: ScaleTransition(
-                                      scale:
-                                          Tween<double>(
-                                            begin: 0.82,
-                                            end: 1.0,
-                                          ).animate(
-                                            CurvedAnimation(
-                                              parent: animation,
-                                              curve: Curves.easeOutBack,
+                              ],
+                            ),
+                            child: GestureDetector(
+                              onTap: completed ? null : _handleTap,
+                              behavior: HitTestBehavior.opaque,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 270,
+                                    height: 270,
+                                    child: CustomPaint(
+                                      painter: _ProgressRingPainter(
+                                        progress: _ringController.value,
+                                        primaryColor: colors.primary,
+                                        trackColor: colors.primary.withValues(
+                                          alpha: 0.09,
+                                        ),
+                                        strokeWidth: 11,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 238,
+                                    height: 238,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: colors.surface,
+                                      border: Border.all(
+                                        color: colors.outlineVariant.withValues(
+                                          alpha: 0.30,
+                                        ),
+                                        width: 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: colors.shadow.withValues(
+                                            alpha: 0.08,
+                                          ),
+                                          blurRadius: 25,
+                                          offset: const Offset(0, 10),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 200,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        AnimatedSwitcher(
+                                          duration: const Duration(
+                                            milliseconds: 250,
+                                          ),
+                                          transitionBuilder:
+                                              (child, animation) {
+                                                return ScaleTransition(
+                                                  scale: animation,
+                                                  child: FadeTransition(
+                                                    opacity: animation,
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                          child: Container(
+                                            key: ValueKey(completed),
+                                            width: 48,
+                                            height: 48,
+                                            decoration: BoxDecoration(
+                                              color: colors.primary.withValues(
+                                                alpha: completed ? 0.16 : 0.09,
+                                              ),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              completed
+                                                  ? Icons.check_rounded
+                                                  : Icons.touch_app_rounded,
+                                              size: 24,
+                                              color: colors.primary,
                                             ),
                                           ),
-                                      child: child,
+                                        ),
+                                        const SizedBox(height: 11),
+                                        AnimatedSwitcher(
+                                          duration: const Duration(
+                                            milliseconds: 180,
+                                          ),
+                                          reverseDuration: const Duration(
+                                            milliseconds: 120,
+                                          ),
+                                          transitionBuilder:
+                                              (child, animation) {
+                                                return FadeTransition(
+                                                  opacity: animation,
+                                                  child: ScaleTransition(
+                                                    scale:
+                                                        Tween<double>(
+                                                          begin: 0.82,
+                                                          end: 1.0,
+                                                        ).animate(
+                                                          CurvedAnimation(
+                                                            parent: animation,
+                                                            curve: Curves
+                                                                .easeOutBack,
+                                                          ),
+                                                        ),
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                          child: Text(
+                                            '${widget.count}',
+                                            key: ValueKey(widget.count),
+                                            style: TextStyle(
+                                              fontSize: 56,
+                                              height: 0.95,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: -1.5,
+                                              color: colors.onSurface,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        AnimatedSwitcher(
+                                          duration: const Duration(
+                                            milliseconds: 220,
+                                          ),
+                                          child: Text(
+                                            completed
+                                                ? 'أتممت الذكر ✓'
+                                                : widget.target > 0
+                                                ? 'من ${widget.target}'
+                                                : 'ذكر مفتوح',
+                                            key: ValueKey(
+                                              '${completed}_${widget.target}',
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: completed
+                                                  ? colors.primary
+                                                  : colors.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                },
-                                child: Text(
-                                  '${widget.count}',
-                                  key: ValueKey(widget.count),
-                                  style: TextStyle(
-                                    fontSize: 56,
-                                    height: 0.95,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: -1.5,
-                                    color: colors.onSurface,
                                   ),
-                                ),
+                                  IgnorePointer(
+                                    child: AnimatedBuilder(
+                                      animation: _tapController,
+                                      builder: (context, child) {
+                                        return Container(
+                                          width:
+                                              210 + (_tapController.value * 18),
+                                          height:
+                                              210 + (_tapController.value * 18),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: colors.primary.withValues(
+                                                alpha:
+                                                    (1 - _tapController.value) *
+                                                    0.14,
+                                              ),
+                                              width: 2,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 10),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 220),
-                                child: Text(
-                                  completed
-                                      ? 'أتممت الذكر ✓'
-                                      : widget.target > 0
-                                      ? 'من ${widget.target}'
-                                      : 'ذكر مفتوح',
-                                  key: ValueKey(
-                                    '${completed}_${widget.target}',
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: completed
-                                        ? colors.primary
-                                        : colors.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                        IgnorePointer(
-                          child: AnimatedBuilder(
-                            animation: _tapController,
-                            builder: (context, child) {
-                              return Container(
-                                width: 210 + (_tapController.value * 18),
-                                height: 210 + (_tapController.value * 18),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: colors.primary.withValues(
-                                      alpha: (1 - _tapController.value) * 0.14,
-                                    ),
-                                    width: 2,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ),
               ),
-            );
-          },
-        ),
-        const SizedBox(height: 20),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (child, animation) {
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.15),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            );
-          },
-          child: Text(
-            completed
-                ? 'ما شاء الله، تم بحمد الله'
-                : 'اضغط على الدائرة للتسبيح',
-            key: ValueKey(completed),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: completed ? colors.primary : colors.onSurfaceVariant,
             ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        AnimatedBuilder(
-          animation: _resetController,
-          builder: (context, child) {
-            return Opacity(
-              opacity: 1 - (_resetController.value * 0.25),
-              child: Transform.scale(
-                scale: 1 - (_resetController.value * 0.05),
-                child: child,
-              ),
-            );
-          },
-          child: OutlinedButton.icon(
-            onPressed: _handleReset,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('إعادة العداد'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+            const SizedBox(height: 20),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.15),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: Text(
+                completed
+                    ? 'ما شاء الله، تم بحمد الله'
+                    : 'اضغط على الدائرة للتسبيح',
+                key: ValueKey(completed),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: completed ? colors.primary : colors.onSurfaceVariant,
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+            const SizedBox(height: 18),
+            AnimatedBuilder(
+              animation: _resetController,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: 1 - (_resetController.value * 0.25),
+                  child: Transform.scale(
+                    scale: 1 - (_resetController.value * 0.05),
+                    child: child,
+                  ),
+                );
+              },
+              child: OutlinedButton.icon(
+                onPressed: _handleReset,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('إعادة العداد'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -572,32 +572,41 @@ class _PrayerCardViewState extends State<_PrayerCardView>
         const SizedBox(height: 14),
 
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _PrayerTime(
-              name: 'الفجر',
-              time: prayerTimes.fajr,
-              isNext: nextPrayerName == 'الفجر',
+            Expanded(
+              child: _PrayerTime(
+                name: 'الفجر',
+                time: prayerTimes.fajr,
+                isNext: nextPrayerName == 'الفجر',
+              ),
             ),
-            _PrayerTime(
-              name: 'الظهر',
-              time: prayerTimes.dhuhr,
-              isNext: nextPrayerName == 'الظهر',
+            Expanded(
+              child: _PrayerTime(
+                name: 'الظهر',
+                time: prayerTimes.dhuhr,
+                isNext: nextPrayerName == 'الظهر',
+              ),
             ),
-            _PrayerTime(
-              name: 'العصر',
-              time: prayerTimes.asr,
-              isNext: nextPrayerName == 'العصر',
+            Expanded(
+              child: _PrayerTime(
+                name: 'العصر',
+                time: prayerTimes.asr,
+                isNext: nextPrayerName == 'العصر',
+              ),
             ),
-            _PrayerTime(
-              name: 'المغرب',
-              time: prayerTimes.maghrib,
-              isNext: nextPrayerName == 'المغرب',
+            Expanded(
+              child: _PrayerTime(
+                name: 'المغرب',
+                time: prayerTimes.maghrib,
+                isNext: nextPrayerName == 'المغرب',
+              ),
             ),
-            _PrayerTime(
-              name: 'العشاء',
-              time: prayerTimes.isha,
-              isNext: nextPrayerName == 'العشاء',
+            Expanded(
+              child: _PrayerTime(
+                name: 'العشاء',
+                time: prayerTimes.isha,
+                isNext: nextPrayerName == 'العشاء',
+              ),
             ),
           ],
         ),

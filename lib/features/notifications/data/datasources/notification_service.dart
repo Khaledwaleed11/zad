@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -120,9 +121,13 @@ class NotificationService {
       }
     });
 
-    final initialAzkarPayload = await _azkarChannel.invokeMethod<String>(
-      'getInitialAzkarPayload',
-    );
+    String? initialAzkarPayload;
+
+    if (!kIsWeb) {
+      initialAzkarPayload = await _azkarChannel.invokeMethod<String>(
+        'getInitialAzkarPayload',
+      );
+    }
 
     if (initialAzkarPayload != null && initialAzkarPayload.isNotEmpty) {
       NotificationNavigationService.onNotificationTapped(initialAzkarPayload);
@@ -136,9 +141,13 @@ class NotificationService {
       }
     });
 
-    final initialSalawatPayload = await _salawatChannel.invokeMethod<String>(
-      'getInitialSalawatPayload',
-    );
+    String? initialSalawatPayload;
+
+    if (!kIsWeb) {
+      initialSalawatPayload = await _salawatChannel.invokeMethod<String>(
+        'getInitialSalawatPayload',
+      );
+    }
 
     if (initialSalawatPayload != null && initialSalawatPayload.isNotEmpty) {
       NotificationNavigationService.onNotificationTapped(initialSalawatPayload);
