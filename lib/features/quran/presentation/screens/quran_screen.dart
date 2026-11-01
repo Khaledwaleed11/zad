@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zad/features/quran/presentation/screens/surah_screen.dart';
@@ -81,7 +82,8 @@ class _QuranScreenState extends State<QuranScreen>
     final results = allSurahs.where((surah) {
       final arabicName = normalizeArabic(surah.name);
       final englishName = surah.englishName.trim().toLowerCase();
-      final translation = surah.englishNameTranslation.trim().toLowerCase();
+      final translation =
+      surah.englishNameTranslation.trim().toLowerCase();
       final number = surah.number.toString();
 
       return arabicName.contains(searchQuery) ||
@@ -177,7 +179,9 @@ class _QuranScreenState extends State<QuranScreen>
                         height: 1,
                         color: colors.primary.withValues(alpha: 0.22),
                       ),
-                      Expanded(child: _buildRecitersList(context, state)),
+                      Expanded(
+                        child: _buildRecitersList(context, state),
+                      ),
                     ],
                   ),
                 ),
@@ -290,12 +294,12 @@ class _QuranScreenState extends State<QuranScreen>
             subtitle: reciter.englishName == null
                 ? null
                 : Text(
-                    reciter.englishName!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
+              reciter.englishName!,
+              style: TextStyle(
+                fontSize: 11,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
             trailing: Icon(
               isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
               color: isSelected ? colors.primary : colors.outlineVariant,
@@ -308,7 +312,6 @@ class _QuranScreenState extends State<QuranScreen>
 
   Widget _buildReciterSelector(BuildContext context, QuranState state) {
     final colors = Theme.of(context).colorScheme;
-
     final reciterName = state.selectedReciter?.name ?? 'اختر القارئ';
 
     return InkWell(
@@ -370,7 +373,10 @@ class _QuranScreenState extends State<QuranScreen>
               else if (state.recitersStatus == QuranRequestStatus.failure)
                 Icon(Icons.refresh_rounded, color: colors.error)
               else
-                Icon(Icons.keyboard_arrow_down_rounded, color: colors.primary),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: colors.primary,
+                ),
             ],
           ),
         ),
@@ -395,17 +401,22 @@ class _QuranScreenState extends State<QuranScreen>
           return SurahScreen(surah: surah);
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final slideAnimation =
-              Tween<Offset>(
-                begin: const Offset(0.10, 0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-              );
+          final slideAnimation = Tween<Offset>(
+            begin: const Offset(0.10, 0),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            ),
+          );
 
           return FadeTransition(
             opacity: animation,
-            child: SlideTransition(position: slideAnimation, child: child),
+            child: SlideTransition(
+              position: slideAnimation,
+              child: child,
+            ),
           );
         },
       ),
@@ -427,45 +438,61 @@ class _QuranScreenState extends State<QuranScreen>
 
     return BlocConsumer<QuranCubit, QuranState>(
       bloc: quranCubit,
+      listenWhen: (previous, current) =>
+      previous.surahsStatus != current.surahsStatus &&
+          current.surahsStatus == QuranRequestStatus.success,
       listener: (context, state) {
-        if (state.surahsStatus == QuranRequestStatus.success) {
-          filteredSurahs = state.surahs;
-          _screenController.forward(from: 0);
-        }
+        filteredSurahs = state.surahs;
+        _screenController.forward(from: 0);
+      },
+      buildWhen: (previous, current) {
+        return previous.surahsStatus != current.surahsStatus ||
+            previous.surahs != current.surahs ||
+            previous.recitersStatus != current.recitersStatus ||
+            previous.reciters != current.reciters ||
+            previous.selectedReciter != current.selectedReciter;
       },
       builder: (context, state) {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           appBar: _buildAppBar(colors),
-          body: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeroHeader(context),
-                      const SizedBox(height: 13),
-                      _buildReciterSelector(context, state),
-                      const SizedBox(height: 15),
-                      _buildSearchField(context),
-                      const SizedBox(height: 11),
-                      _buildResultInfo(context),
-                    ],
-                  ),
+          body: RefreshIndicator(
+            onRefresh: loadSurahs,
+            color: colors.primary,
+            backgroundColor: colors.surface,
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
-                Expanded(child: _buildContent(context, state)),
-              ],
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeroHeader(context),
+                          const SizedBox(height: 13),
+                          _buildReciterSelector(context, state),
+                          const SizedBox(height: 15),
+                          _buildSearchField(context),
+                          const SizedBox(height: 11),
+                          _buildResultInfo(context),
+                        ],
+                      ),
+                    ),
+                  ),
+                  ..._buildContentSlivers(context, state),
+                ],
+              ),
             ),
           ),
         );
       },
     );
   }
-
-  // AppBar
 
   PreferredSizeWidget _buildAppBar(ColorScheme colors) {
     return AppBar(
@@ -519,15 +546,19 @@ class _QuranScreenState extends State<QuranScreen>
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: colors.primary.withValues(alpha: 0.3),
+            ),
           ),
-          child: Icon(Icons.menu_book_rounded, size: 20, color: colors.primary),
+          child: Icon(
+            Icons.menu_book_rounded,
+            size: 20,
+            color: colors.primary,
+          ),
         ),
       ),
     );
   }
-
-  // Hero Header
 
   Widget _buildHeroHeader(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -541,7 +572,9 @@ class _QuranScreenState extends State<QuranScreen>
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
+          border: Border.all(
+            color: colors.primary.withValues(alpha: 0.25),
+          ),
         ),
         child: Row(
           children: [
@@ -606,8 +639,6 @@ class _QuranScreenState extends State<QuranScreen>
     );
   }
 
-  // Search
-
   Widget _buildSearchField(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
@@ -616,7 +647,9 @@ class _QuranScreenState extends State<QuranScreen>
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: colors.primary.withValues(alpha: 0.4),
+        ),
       ),
       child: TextField(
         controller: searchController,
@@ -630,7 +663,10 @@ class _QuranScreenState extends State<QuranScreen>
         ),
         decoration: InputDecoration(
           hintText: 'ابحث عن اسم السورة أو رقمها...',
-          hintStyle: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
+          hintStyle: TextStyle(
+            fontSize: 11,
+            color: colors.onSurfaceVariant,
+          ),
           prefixIcon: Icon(
             Icons.search_rounded,
             color: colors.primary,
@@ -638,13 +674,13 @@ class _QuranScreenState extends State<QuranScreen>
           ),
           suffixIcon: searchController.text.isNotEmpty
               ? IconButton(
-                  onPressed: clearSearch,
-                  icon: Icon(
-                    Icons.close_rounded,
-                    color: colors.primary,
-                    size: 19,
-                  ),
-                )
+            onPressed: clearSearch,
+            icon: Icon(
+              Icons.close_rounded,
+              color: colors.primary,
+              size: 19,
+            ),
+          )
               : null,
           filled: true,
           fillColor: colors.surface,
@@ -662,14 +698,15 @@ class _QuranScreenState extends State<QuranScreen>
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(13),
-            borderSide: BorderSide(color: colors.primary, width: 1),
+            borderSide: BorderSide(
+              color: colors.primary,
+              width: 1,
+            ),
           ),
         ),
       ),
     );
   }
-
-  // Result Info
 
   Widget _buildResultInfo(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -715,59 +752,70 @@ class _QuranScreenState extends State<QuranScreen>
     );
   }
 
-  // Content
-
-  Widget _buildContent(BuildContext context, QuranState state) {
+  List<Widget> _buildContentSlivers(
+      BuildContext context,
+      QuranState state,
+      ) {
     if (state.surahsStatus == QuranRequestStatus.loading ||
         state.surahsStatus == QuranRequestStatus.initial) {
-      return _buildLoading(context);
+      return [
+        SliverToBoxAdapter(
+          child: _buildLoading(context),
+        ),
+      ];
     }
 
     if (state.surahsStatus == QuranRequestStatus.failure) {
-      return _buildError(context);
+      return [
+        SliverToBoxAdapter(
+          child: _buildError(context),
+        ),
+      ];
     }
 
     if (filteredSurahs.isEmpty) {
-      return _buildEmpty(context);
+      return [
+        SliverToBoxAdapter(
+          child: _buildEmpty(context),
+        ),
+      ];
     }
 
     final colors = Theme.of(context).colorScheme;
 
-    return RefreshIndicator(
-      onRefresh: loadSurahs,
-      color: colors.primary,
-      backgroundColor: colors.surface,
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
+    return [
+      SliverPadding(
         padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
-        itemCount: filteredSurahs.length,
-        itemBuilder: (context, index) {
-          final surah = filteredSurahs[index];
-          final double delay = (index * 0.035).clamp(0.0, 0.55);
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+                (context, index) {
+              final surah = filteredSurahs[index];
+              final delay = (index * 0.035).clamp(0.0, 0.55);
 
-          return TweenAnimationBuilder<double>(
-            key: ValueKey('${surah.number}_${searchController.text}'),
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, child) {
-              final adjusted = (value - delay).clamp(0.0, 1.0);
+              return TweenAnimationBuilder<double>(
+                key: ValueKey('${surah.number}_${searchController.text}'),
+                tween: Tween<double>(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) {
+                  final adjusted = (value - delay).clamp(0.0, 1.0);
 
-              return Opacity(
-                opacity: adjusted,
-                child: Transform.translate(
-                  offset: Offset(0, 18 * (1 - adjusted)),
-                  child: child,
-                ),
+                  return Opacity(
+                    opacity: adjusted,
+                    child: Transform.translate(
+                      offset: Offset(0, 18 * (1 - adjusted)),
+                      child: child,
+                    ),
+                  );
+                },
+                child: _buildSurahFrame(colors, surah),
               );
             },
-            child: _buildSurahFrame(colors, surah),
-          );
-        },
+            childCount: filteredSurahs.length,
+          ),
+        ),
       ),
-    );
+    ];
   }
 
   Widget _buildSurahFrame(ColorScheme colors, SurahEntity surah) {
@@ -801,60 +849,76 @@ class _QuranScreenState extends State<QuranScreen>
     );
   }
 
-  // Loading
-
   Widget _buildLoading(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
+    return Padding(
       padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
-      itemCount: 6,
-      itemBuilder: (context, index) {
-        return Container(
-          height: 78,
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: colors.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(19),
-            border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Column(
+        children: List.generate(
+          6,
+              (index) => Container(
+            height: 78,
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(15),
+              color: colors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(
+                color: colors.primary.withValues(alpha: 0.3),
+              ),
             ),
-            child: Row(
-              children: [
-                _shimmerBox(context, width: 44, height: 44, radius: 13),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _shimmerBox(context, width: 90, height: 14, radius: 5),
-                      const SizedBox(height: 8),
-                      _shimmerBox(context, width: 130, height: 9, radius: 4),
-                    ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                children: [
+                  _shimmerBox(
+                    context,
+                    width: 44,
+                    height: 44,
+                    radius: 13,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _shimmerBox(
+                          context,
+                          width: 90,
+                          height: 14,
+                          radius: 5,
+                        ),
+                        const SizedBox(height: 8),
+                        _shimmerBox(
+                          context,
+                          width: 130,
+                          height: 9,
+                          radius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _shimmerBox(
-    BuildContext context, {
-    required double width,
-    required double height,
-    required double radius,
-  }) {
+      BuildContext context, {
+        required double width,
+        required double height,
+        required double radius,
+      }) {
     final colors = Theme.of(context).colorScheme;
 
     return TweenAnimationBuilder<double>(
@@ -875,8 +939,6 @@ class _QuranScreenState extends State<QuranScreen>
       },
     );
   }
-
-  // Error
 
   Widget _buildError(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -928,8 +990,6 @@ class _QuranScreenState extends State<QuranScreen>
     );
   }
 
-  // Empty Search
-
   Widget _buildEmpty(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
@@ -958,7 +1018,10 @@ class _QuranScreenState extends State<QuranScreen>
             Text(
               'جرّب اسم السورة أو رقمها.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 18),
             OutlinedButton.icon(
@@ -971,8 +1034,6 @@ class _QuranScreenState extends State<QuranScreen>
       ),
     );
   }
-
-  // Reusable Design Helpers
 
   Widget _buildFramedContainer({
     required ColorScheme colors,
@@ -995,20 +1056,26 @@ class _QuranScreenState extends State<QuranScreen>
   }
 
   Widget _buildIconContainer(
-    ColorScheme colors,
-    IconData icon, {
-    double size = 42,
-    double iconSize = 21,
-  }) {
+      ColorScheme colors,
+      IconData icon, {
+        double size = 42,
+        double iconSize = 21,
+      }) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.11),
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
+        border: Border.all(
+          color: colors.primary.withValues(alpha: 0.35),
+        ),
       ),
-      child: Icon(icon, color: colors.primary, size: iconSize),
+      child: Icon(
+        icon,
+        color: colors.primary,
+        size: iconSize,
+      ),
     );
   }
 }

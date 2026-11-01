@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,11 +27,14 @@ class _SurahScreenState extends State<SurahScreen>
   final Map<int, GlobalKey> _ayahKeys = {};
   int? _lastAutoScrolledAyahNumber;
 
+  bool _hasHandledSurahSuccess = false;
+
   @override
   void initState() {
     super.initState();
 
     quranCubit = sl<QuranCubit>();
+    quranCubit.startAudioListening(ownsAudio: true);
 
     _animationController = AnimationController(
       vsync: this,
@@ -43,7 +45,10 @@ class _SurahScreenState extends State<SurahScreen>
   }
 
   Future<void> loadSurah() async {
+    _ayahKeys.clear();
     _lastAutoScrolledAyahNumber = null;
+    _hasHandledSurahSuccess = false;
+
     await quranCubit.loadSurahAyahs(widget.surah.number);
   }
 
@@ -56,14 +61,21 @@ class _SurahScreenState extends State<SurahScreen>
       return;
     }
 
-    _lastAutoScrolledAyahNumber = ayahNumber;
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
+      final currentState = quranCubit.state;
+
+      if (currentState.currentAyahNumber != ayahNumber ||
+          currentState.audioStatus != QuranAudioStatus.playing) {
+        return;
+      }
 
       final ayahContext = _ayahKeys[ayahNumber]?.currentContext;
 
       if (ayahContext == null) return;
+
+      _lastAutoScrolledAyahNumber = ayahNumber;
 
       Scrollable.ensureVisible(
         ayahContext,
@@ -90,9 +102,7 @@ class _SurahScreenState extends State<SurahScreen>
     }
   }
 
-  Future<void> toggleSurahPlayback(
-      List<QuranAyahEntity> ayahs,
-      ) async {
+  Future<void> toggleSurahPlayback(List<QuranAyahEntity> ayahs) async {
     final status = quranCubit.state.audioStatus;
 
     if (status == QuranAudioStatus.loading) return;
@@ -110,7 +120,8 @@ class _SurahScreenState extends State<SurahScreen>
   Future<void> copyAyah(QuranAyahEntity ayah) async {
     await Clipboard.setData(
       ClipboardData(
-        text: '${ayah.text}\n\n'
+        text:
+            '${ayah.text}\n\n'
             '${widget.surah.name} - الآية ${ayah.numberInSurah}',
       ),
     );
@@ -126,17 +137,12 @@ class _SurahScreenState extends State<SurahScreen>
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
         backgroundColor: colors.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         content: const Row(
           children: [
             Icon(Icons.check_rounded, color: Colors.white, size: 18),
             SizedBox(width: 8),
-            Text(
-              'تم نسخ الآية',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
+            Text('تم نسخ الآية', style: TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
       ),
@@ -147,7 +153,8 @@ class _SurahScreenState extends State<SurahScreen>
     try {
       await SharePlus.instance.share(
         ShareParams(
-          text: '${ayah.text}\n\n'
+          text:
+              '${ayah.text}\n\n'
               '${widget.surah.name} - الآية ${ayah.numberInSurah}\n'
               '${AppConstants.appName}',
         ),
@@ -157,9 +164,9 @@ class _SurahScreenState extends State<SurahScreen>
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذر مشاركة الآية')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تعذر مشاركة الآية')));
     }
   }
 
@@ -178,8 +185,9 @@ class _SurahScreenState extends State<SurahScreen>
     return BlocListener<QuranCubit, QuranState>(
       bloc: quranCubit,
       listener: (context, state) {
-        if (state.surahAyahsStatus == QuranRequestStatus.success) {
-          _ayahKeys.clear();
+        if (state.surahAyahsStatus == QuranRequestStatus.success &&
+            !_hasHandledSurahSuccess) {
+          _hasHandledSurahSuccess = true;
           _animationController.forward(from: 0);
         }
 
@@ -201,8 +209,7 @@ class _SurahScreenState extends State<SurahScreen>
         body: BlocBuilder<QuranCubit, QuranState>(
           bloc: quranCubit,
           buildWhen: (previous, current) {
-            return previous.surahAyahsStatus !=
-                current.surahAyahsStatus ||
+            return previous.surahAyahsStatus != current.surahAyahsStatus ||
                 previous.surahAyahs != current.surahAyahs ||
                 previous.surahAyahsError != current.surahAyahsError;
           },
@@ -247,20 +254,17 @@ class _SurahScreenState extends State<SurahScreen>
         IconButton(
           onPressed: loadSurah,
           tooltip: 'تحديث',
-          icon: Icon(
-            Icons.refresh_rounded,
-            color: colors.primary,
-          ),
+          icon: Icon(Icons.refresh_rounded, color: colors.primary),
         ),
       ],
     );
   }
 
   Widget _buildBody(
-      BuildContext context,
-      ColorScheme colors,
-      QuranState state,
-      ) {
+    BuildContext context,
+    ColorScheme colors,
+    QuranState state,
+  ) {
     if (state.surahAyahsStatus == QuranRequestStatus.loading ||
         state.surahAyahsStatus == QuranRequestStatus.initial) {
       return _buildLoading(colors);
@@ -288,7 +292,7 @@ class _SurahScreenState extends State<SurahScreen>
           ...state.surahAyahs.map((ayah) {
             final ayahKey = _ayahKeys.putIfAbsent(
               ayah.number,
-                  () => GlobalKey(),
+              () => GlobalKey(),
             );
 
             return _AnimatedAyahCard(
@@ -324,18 +328,17 @@ class _SurahScreenState extends State<SurahScreen>
 
   Widget _buildAyahAudioCard(QuranAyahEntity ayah) {
     return BlocSelector<
-        QuranCubit,
-        QuranState,
-        ({bool isCurrent, QuranAudioStatus status})>(
+      QuranCubit,
+      QuranState,
+      ({bool isCurrent, QuranAudioStatus status})
+    >(
       bloc: quranCubit,
       selector: (state) {
         final isCurrent = state.currentAyahNumber == ayah.number;
 
         return (
-        isCurrent: isCurrent,
-        status: isCurrent
-            ? state.audioStatus
-            : QuranAudioStatus.initial,
+          isCurrent: isCurrent,
+          status: isCurrent ? state.audioStatus : QuranAudioStatus.initial,
         );
       },
       builder: (context, audioState) {
@@ -363,9 +366,7 @@ class _SurahScreenState extends State<SurahScreen>
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(21),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.45),
-            ),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.45)),
           ),
           child: Container(
             height: 175,
@@ -373,36 +374,18 @@ class _SurahScreenState extends State<SurahScreen>
             decoration: BoxDecoration(
               color: colors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildLoadingBox(
-                  colors,
-                  width: 38,
-                  height: 38,
-                ),
+                _buildLoadingBox(colors, width: 38, height: 38),
                 const SizedBox(height: 22),
-                _buildLoadingBox(
-                  colors,
-                  width: double.infinity,
-                  height: 16,
-                ),
+                _buildLoadingBox(colors, width: double.infinity, height: 16),
                 const SizedBox(height: 10),
-                _buildLoadingBox(
-                  colors,
-                  width: 250,
-                  height: 16,
-                ),
+                _buildLoadingBox(colors, width: 250, height: 16),
                 const SizedBox(height: 10),
-                _buildLoadingBox(
-                  colors,
-                  width: 180,
-                  height: 16,
-                ),
+                _buildLoadingBox(colors, width: 180, height: 16),
               ],
             ),
           ),
@@ -412,10 +395,10 @@ class _SurahScreenState extends State<SurahScreen>
   }
 
   Widget _buildLoadingBox(
-      ColorScheme colors, {
-        required double width,
-        required double height,
-      }) {
+    ColorScheme colors, {
+    required double width,
+    required double height,
+  }) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.3, end: 0.8),
       duration: const Duration(milliseconds: 900),
@@ -442,11 +425,7 @@ class _SurahScreenState extends State<SurahScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildStatusIcon(
-              colors,
-              Icons.cloud_off_rounded,
-              isError: true,
-            ),
+            _buildStatusIcon(colors, Icons.cloud_off_rounded, isError: true),
             const SizedBox(height: 18),
             Text(
               'تعذر تحميل السورة',
@@ -485,10 +464,7 @@ class _SurahScreenState extends State<SurahScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildStatusIcon(
-              colors,
-              Icons.menu_book_rounded,
-            ),
+            _buildStatusIcon(colors, Icons.menu_book_rounded),
             const SizedBox(height: 16),
             Text(
               'لا توجد آيات للعرض',
@@ -505,10 +481,10 @@ class _SurahScreenState extends State<SurahScreen>
   }
 
   Widget _buildStatusIcon(
-      ColorScheme colors,
-      IconData icon, {
-        bool isError = false,
-      }) {
+    ColorScheme colors,
+    IconData icon, {
+    bool isError = false,
+  }) {
     final iconColor = isError ? colors.error : colors.primary;
 
     return Container(
@@ -517,15 +493,9 @@ class _SurahScreenState extends State<SurahScreen>
       decoration: BoxDecoration(
         color: iconColor.withValues(alpha: 0.10),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: iconColor.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: iconColor.withValues(alpha: 0.35)),
       ),
-      child: Icon(
-        icon,
-        size: 35,
-        color: iconColor,
-      ),
+      child: Icon(icon, size: 35, color: iconColor),
     );
   }
 }
@@ -553,8 +523,7 @@ class _SurahHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    final bool isMeccan =
-        surah.revelationType.toLowerCase() == 'meccan';
+    final bool isMeccan = surah.revelationType.toLowerCase() == 'meccan';
 
     return Container(
       width: double.infinity,
@@ -573,9 +542,7 @@ class _SurahHeader extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.3),
-          ),
+          border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -650,8 +617,9 @@ class _SurahHeader extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: colors.primary,
                   foregroundColor: colors.onPrimary,
-                  disabledBackgroundColor:
-                  colors.primary.withValues(alpha: 0.35),
+                  disabledBackgroundColor: colors.primary.withValues(
+                    alpha: 0.35,
+                  ),
                   disabledForegroundColor: colors.onPrimary,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -674,21 +642,17 @@ class _SurahHeader extends StatelessWidget {
   }
 
   Widget _buildDecoration(
-      ColorScheme colors, {
-        IconData icon = Icons.auto_awesome,
-        double iconSize = 17,
-      }) {
+    ColorScheme colors, {
+    IconData icon = Icons.auto_awesome,
+    double iconSize = 17,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _decorationLine(colors),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 9),
-          child: Icon(
-            icon,
-            color: colors.primary,
-            size: iconSize,
-          ),
+          child: Icon(icon, color: colors.primary, size: iconSize),
         ),
         _decorationLine(colors),
       ],
@@ -727,9 +691,10 @@ class _AnimatedAyahCard extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
-        final double value =
-        ((controller.value - delay) / (1 - delay))
-            .clamp(0.0, 1.0);
+        final double value = ((controller.value - delay) / (1 - delay)).clamp(
+          0.0,
+          1.0,
+        );
 
         final curved = Curves.easeOutCubic.transform(value);
 
@@ -749,6 +714,7 @@ class _AnimatedAyahCard extends StatelessWidget {
 // -----------------------------------------------------------------------------
 // Ayah Card
 // -----------------------------------------------------------------------------
+
 class _AyahCard extends StatelessWidget {
   final QuranAyahEntity ayah;
   final bool isCurrentAyah;
@@ -768,20 +734,15 @@ class _AyahCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final paper = isDark
-        ? const Color(0xFF252017)
-        : const Color(0xFFF7F1DF);
+    final paper = isDark ? const Color(0xFF252017) : const Color(0xFFF7F1DF);
 
     final innerPaper = isDark
         ? const Color(0xFF201B13)
         : const Color(0xFFFFFCF4);
 
-    final gold = isDark
-        ? const Color(0xFFD6BE83)
-        : const Color(0xFFA88746);
+    final gold = isDark ? const Color(0xFFD6BE83) : const Color(0xFFA88746);
 
     final lightGold = isDark
         ? const Color(0xFF806B43)
@@ -795,13 +756,9 @@ class _AyahCard extends StatelessWidget {
         ? const Color(0xFFC1B18F)
         : const Color(0xFF786548);
 
-    final isPlaying =
-        isCurrentAyah &&
-            audioStatus == QuranAudioStatus.playing;
+    final isPlaying = isCurrentAyah && audioStatus == QuranAudioStatus.playing;
 
-    final isLoading =
-        isCurrentAyah &&
-            audioStatus == QuranAudioStatus.loading;
+    final isLoading = isCurrentAyah && audioStatus == QuranAudioStatus.loading;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -809,15 +766,10 @@ class _AyahCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: paper,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: gold,
-          width: isCurrentAyah ? 1.8 : 1.3,
-        ),
+        border: Border.all(color: gold, width: isCurrentAyah ? 1.8 : 1.3),
         boxShadow: [
           BoxShadow(
-            color: gold.withValues(
-              alpha: isDark ? 0.07 : 0.12,
-            ),
+            color: gold.withValues(alpha: isDark ? 0.07 : 0.12),
             blurRadius: 18,
             offset: const Offset(0, 7),
           ),
@@ -870,14 +822,8 @@ class _AyahCard extends StatelessWidget {
                 color: gold.withValues(alpha: 0.65),
               ),
             ),
-
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                15,
-                20,
-                15,
-                16,
-              ),
+              padding: const EdgeInsets.fromLTRB(15, 20, 15, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -891,9 +837,7 @@ class _AyahCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: gold.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: lightGold,
-                          ),
+                          border: Border.all(color: lightGold),
                         ),
                         child: Text(
                           '۞  ${ayah.numberInSurah}  ۞',
@@ -904,9 +848,7 @@ class _AyahCard extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       const Spacer(),
-
                       _SmallActionButton(
                         icon: isLoading
                             ? Icons.hourglass_top_rounded
@@ -916,32 +858,21 @@ class _AyahCard extends StatelessWidget {
                         onTap: onPlayAudio,
                         isActive: isCurrentAyah,
                       ),
-
                       const SizedBox(width: 5),
-
                       _SmallActionButton(
                         icon: Icons.copy_rounded,
                         onTap: onCopy,
                       ),
-
                       const SizedBox(width: 5),
-
                       _SmallActionButton(
                         icon: Icons.share_outlined,
                         onTap: onShare,
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 13),
-
-                  Divider(
-                    color: lightGold,
-                    height: 1,
-                  ),
-
+                  Divider(color: lightGold, height: 1),
                   const SizedBox(height: 17),
-
                   Directionality(
                     textDirection: TextDirection.rtl,
                     child: Text(
@@ -955,9 +886,7 @@ class _AyahCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 15),
-
                   Directionality(
                     textDirection: TextDirection.rtl,
                     child: Text(
@@ -970,23 +899,12 @@ class _AyahCard extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 19),
-
-                  Divider(
-                    color: lightGold,
-                    height: 1,
-                  ),
-
+                  Divider(color: lightGold, height: 1),
                   const SizedBox(height: 13),
-
                   Row(
                     children: [
-                      Icon(
-                        Icons.menu_book_outlined,
-                        size: 16,
-                        color: gold,
-                      ),
+                      Icon(Icons.menu_book_outlined, size: 16, color: gold),
                       const SizedBox(width: 7),
                       Text(
                         'من القرآن الكريم',
@@ -996,9 +914,7 @@ class _AyahCard extends StatelessWidget {
                           color: mutedColor,
                         ),
                       ),
-
                       const Spacer(),
-
                       if (isCurrentAyah) ...[
                         Icon(
                           isPlaying
@@ -1009,9 +925,7 @@ class _AyahCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          isPlaying
-                              ? 'تُتلى الآن'
-                              : 'متوقفة مؤقتًا',
+                          isPlaying ? 'تُتلى الآن' : 'متوقفة مؤقتًا',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -1030,6 +944,7 @@ class _AyahCard extends StatelessWidget {
     );
   }
 }
+
 // -----------------------------------------------------------------------------
 // Small Action Button
 // -----------------------------------------------------------------------------
@@ -1062,15 +977,9 @@ class _SmallActionButton extends StatelessWidget {
           height: 34,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.22),
-            ),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.22)),
           ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: colors.primary,
-          ),
+          child: Icon(icon, size: 16, color: colors.primary),
         ),
       ),
     );
@@ -1085,35 +994,23 @@ class _SurahInfoChip extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _SurahInfoChip({
-    required this.icon,
-    required this.text,
-  });
+  const _SurahInfoChip({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 7,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.09),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.28),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.28)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 13,
-            color: colors.primary,
-          ),
+          Icon(icon, size: 13, color: colors.primary),
           const SizedBox(width: 5),
           Text(
             text,

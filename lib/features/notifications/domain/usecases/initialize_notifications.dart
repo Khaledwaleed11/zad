@@ -1,9 +1,10 @@
-
 import '../../../settings/domain/usecases/get_notification_settings.dart';
 import 'schedule_prayer_notifications.dart';
 import 'cancel_prayer_notifications.dart';
 import 'schedule_azkar_notifications.dart';
 import 'cancel_azkar_notifications.dart';
+import 'schedule_salawat_notifications.dart';
+import 'cancel_salawat_notifications.dart';
 
 class InitializeNotifications {
   final GetNotificationSettings getNotificationSettings;
@@ -11,6 +12,8 @@ class InitializeNotifications {
   final CancelPrayerNotifications cancelPrayerNotifications;
   final ScheduleAzkarNotifications scheduleAzkarNotifications;
   final CancelAzkarNotifications cancelAzkarNotifications;
+  final ScheduleSalawatNotifications scheduleSalawatNotifications;
+  final CancelSalawatNotifications cancelSalawatNotifications;
 
   InitializeNotifications({
     required this.getNotificationSettings,
@@ -18,6 +21,8 @@ class InitializeNotifications {
     required this.cancelPrayerNotifications,
     required this.scheduleAzkarNotifications,
     required this.cancelAzkarNotifications,
+    required this.scheduleSalawatNotifications,
+    required this.cancelSalawatNotifications,
   });
 
   Future<void> call() async {
@@ -33,6 +38,12 @@ class InitializeNotifications {
       await scheduleAzkarNotifications();
     } else {
       await cancelAzkarNotifications();
+    }
+
+    if (settings.salawatNotificationsEnabled) {
+      await scheduleSalawatNotifications();
+    } else {
+      await cancelSalawatNotifications();
     }
   }
 }

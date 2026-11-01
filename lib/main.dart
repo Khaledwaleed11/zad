@@ -15,13 +15,12 @@ Future<void> main() async {
   await Hive.openBox(StorageConstants.settingsBox);
   await Hive.openBox(StorageConstants.audioLibraryBox);
   await Hive.openBox(StorageConstants.customAzkarBox);
+  await Hive.openBox(StorageConstants.salawatScheduleBox);
 
   await NotificationService.initialize();
   await initDependencies();
 
   runApp(const ZadApp());
 
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    await NotificationService.testAzkarNotification();
-  });
+
 }

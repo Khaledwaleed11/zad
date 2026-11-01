@@ -38,7 +38,14 @@ class QuranAudioDataSource {
   Stream<int?> get currentAyahNumberStream =>
       _audioPlayer.positionStream
           .map((_) => currentAyahNumber)
-          .distinct();
+          .distinct()
+          .map((ayahNumber) {
+        print(
+          'CURRENT AYAH STREAM: $ayahNumber | '
+              'POSITION: ${_audioPlayer.position.inMilliseconds} ms',
+        );
+        return ayahNumber;
+      });
 
   int? get currentAyahNumber {
     if (kDebugMode) {
@@ -163,23 +170,35 @@ class QuranAudioDataSource {
   Future<int?> _getTimingReadId() async {
     final reciter = _selectedReciter;
 
-    if (reciter == null) return null;
+    if (reciter == null) {
+      print('ERROR: No selected reciter.');
+      return null;
+    }
 
     final reads = await _loadTimingReads();
 
+    final selectedUri = Uri.parse(reciter.server);
+
+    print('========== SELECTED RECITER ==========');
+    print('Name: ${reciter.name}');
+    print('Moshaf: ${reciter.moshafName}');
+    print('Server: ${reciter.server}');
+    print('Server URI: $selectedUri');
+    print('Host: ${selectedUri.host}');
+    print('Path: ${selectedUri.path}');
+
+    print('========== TIMING READS ==========');
 
     for (final read in reads) {
-      print(
-        'Timing Read ID: ${read['id']} | '
-            'Folder: ${read['folder_url']}',
-      );
-    }
-    final selectedUri = Uri.parse(reciter.server);
-    print('Selected reciter server: ${reciter.server}');
-    print('Selected server URI: $selectedUri');
-    for (final read in reads) {
       final folderUrl = read['folder_url']?.toString();
-      print('Timing folder URL: $folderUrl');
+
+      print(
+        'ID: ${read['id']} | '
+            'Name: ${read['name']} | '
+            'Rewaya: ${read['rewaya']} | '
+            'Folder: $folderUrl',
+      );
+
       if (folderUrl == null || folderUrl.isEmpty) {
         continue;
       }
@@ -192,15 +211,29 @@ class QuranAudioDataSource {
           selectedUri.host.toLowerCase() ==
               timingUri.host.toLowerCase();
 
-      final samePath =
-          selectedUri.path.replaceAll(RegExp(r'/+$'), '') ==
-              timingUri.path.replaceAll(RegExp(r'/+$'), '');
+      final selectedPath =
+      selectedUri.path.replaceAll(RegExp(r'/+$'), '');
+
+      final timingPath =
+      timingUri.path.replaceAll(RegExp(r'/+$'), '');
+
+      final samePath = selectedPath == timingPath;
+
+      print(
+        'Comparing ID ${read['id']}: '
+            'sameHost=$sameHost, samePath=$samePath',
+      );
 
       if (sameHost && samePath) {
-        return int.tryParse(read['id'].toString());
+        final readId = int.tryParse(read['id'].toString());
+
+        print('MATCH FOUND: $readId');
+
+        return readId;
       }
     }
 
+    print('ERROR: No matching timing read found.');
     return null;
   }
 
@@ -301,6 +334,9 @@ class QuranAudioDataSource {
     final audioUrl = _getSurahAudioUrl(surahNumber);
 
     final timings = await _loadAyahTimings(surahNumber);
+
+    print('TIMINGS COUNT: ${timings.length}');
+    print('FIRST TIMING: ${timings.isNotEmpty ? timings.first : 'EMPTY'}');
 
     await _audioPlayer.setUrl(audioUrl);
 

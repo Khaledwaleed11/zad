@@ -30,4 +30,9 @@ class NotificationSettingsRepositoryImpl
   Future<void> saveAdhanEnabled(bool enabled) {
     return localDataSource.saveAdhanEnabled(enabled);
   }
+
+  @override
+  Future<void> saveSalawatNotifications(bool enabled) {
+    return localDataSource.saveSalawatNotifications(enabled);
+  }
 }

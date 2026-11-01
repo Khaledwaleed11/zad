@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-
+import 'package:hijri/hijri_calendar.dart';
 import 'package:zad/features/azkar/presentation/screens/azkar_screen.dart';
 import 'package:zad/features/prayer_times/presentation/screens/prayer_times_screen.dart';
 import 'package:zad/features/qibla/presentation/screens/qibla_screen.dart';
@@ -250,6 +250,11 @@ class _HomeScreenState extends State<HomeScreen>
     final now = DateTime.now();
     final formattedDate = '${now.day} / ${now.month} / ${now.year}';
 
+    final hijriDate = HijriCalendar.fromDate(now);
+
+    final hijriFormattedDate =
+        '${hijriDate.hDay} ${hijriDate.getLongMonthName()} ${hijriDate.hYear} هـ';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(4),
@@ -264,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: 12,
-          vertical: 9,
+          vertical: 10,
         ),
         decoration: BoxDecoration(
           color: colors.surface,
@@ -274,54 +279,110 @@ class _HomeScreenState extends State<HomeScreen>
             width: 0.8,
           ),
         ),
-        child: Row(
+        child: Column(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: colors.primary.withValues(alpha: 0.25),
+            // Gregorian Date
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: colors.primary.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.calendar_month_rounded,
+                    size: 17,
+                    color: colors.primary,
+                  ),
                 ),
-              ),
-              child: Icon(
-                Icons.calendar_month_rounded,
-                size: 17,
-                color: colors.primary,
+                const SizedBox(width: 10),
+                Text(
+                  'التاريخ الميلادي',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  textDirection: TextDirection.ltr,
+                  formattedDate,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: colors.onSurface,
+                  ),
+                ),
+              ],
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Divider(
+                height: 1,
+                color: colors.primary.withValues(alpha: 0.15),
               ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              'اليوم',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              formattedDate,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                color: colors.onSurface,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.auto_awesome,
-              size: 13,
-              color: colors.primary.withValues(alpha: 0.65),
+
+            // Hijri Date
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: colors.primary.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.nightlight_round,
+                    size: 17,
+                    color: colors.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'التاريخ الهجري',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      textDirection: TextDirection.ltr,
+                      hijriFormattedDate,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: colors.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
-
   Widget _buildQuickActions(BuildContext context) {
     return Column(
       children: [

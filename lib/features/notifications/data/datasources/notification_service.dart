@@ -4,7 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../../../core/constants/storage_constants.dart';
 import '../../../../models/prayer_times_model.dart';
 import '../../presentation/services/notification_navigation_service.dart';
 
@@ -26,6 +27,24 @@ class NotificationService {
   static const int _morningAzkarId = 201;
   static const int _eveningAzkarId = 202;
   static const int _sleepAzkarId = 203;
+
+  static const int _salawatTestIntervalMinutes = 5;
+  static const String _salawatNextNotificationKey = 'next_notification';
+
+  static Box get _salawatScheduleBox =>
+      Hive.box(StorageConstants.salawatScheduleBox);
+
+  static DateTime? getNextSalawatNotificationTime() {
+    final timestamp = _salawatScheduleBox.get(
+      _salawatNextNotificationKey,
+    );
+
+    if (timestamp is int) {
+      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    }
+
+    return null;
+  }
 
   static const AndroidNotificationDetails _prayerAndroidDetails =
       AndroidNotificationDetails(
@@ -325,36 +344,43 @@ class NotificationService {
   // ---------------------------------------------------------------------------
   // Salawat Notifications - Flutter Local Notifications
   // ---------------------------------------------------------------------------
-
   static Future<void> scheduleSalawatNotifications() async {
+    // التحقق من وجود موعد سابق صالح.
+    final existingTime = getNextSalawatNotificationTime();
+
+    if (existingTime != null &&
+        existingTime.isAfter(DateTime.now())) {
+      return;
+    }
+
+    // إلغاء أي مواعيد قديمة للصلاة على النبي.
     await cancelSalawatNotifications();
 
-    final now = tz.TZDateTime.now(tz.local);
+    final scheduledDate = tz.TZDateTime.now(tz.local).add(
+      const Duration(minutes: _salawatTestIntervalMinutes),
+    );
+
     final exactAvailable = await _canUseExactAlarms();
     final scheduleMode = _getScheduleMode(exactAvailable);
 
-    for (int i = 0; i < _salawatCount; i++) {
-      final totalMinutes = i * 90;
-      final hour = totalMinutes ~/ 60;
-      final minute = totalMinutes % 60;
+    await _notifications.zonedSchedule(
+      id: _salawatIdPrefix,
+      title: 'صلِّ على النبي ﷺ',
+      body: 'اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️',
+      payload: 'salawat',
+      scheduledDate: scheduledDate,
+      notificationDetails: const NotificationDetails(
+        android: _salawatAndroidDetails,
+      ),
+      androidScheduleMode: scheduleMode,
+    );
 
-      final scheduledDate = _nextDailyTime(now, hour, minute);
-
-      await _notifications.zonedSchedule(
-        id: _salawatIdPrefix + i,
-        title: 'صلِّ على النبي ﷺ',
-        body: 'اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️',
-        payload: 'salawat',
-        scheduledDate: scheduledDate,
-        notificationDetails: const NotificationDetails(
-          android: _salawatAndroidDetails,
-        ),
-        androidScheduleMode: scheduleMode,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-    }
+    // حفظ موعد الإشعار لاستخدامه في العدّاد.
+    await _salawatScheduleBox.put(
+      _salawatNextNotificationKey,
+      scheduledDate.millisecondsSinceEpoch,
+    );
   }
-
   static Future<void> testSalawatNotification() async {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -382,6 +408,8 @@ class NotificationService {
     for (int i = 0; i < _salawatCount; i++) {
       await _notifications.cancel(id: _salawatIdPrefix + i);
     }
+
+    await _salawatScheduleBox.delete(_salawatNextNotificationKey);
   }
 
   // ---------------------------------------------------------------------------

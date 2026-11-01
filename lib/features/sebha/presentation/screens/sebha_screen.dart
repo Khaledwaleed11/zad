@@ -446,62 +446,218 @@ class _SebhaScreenViewState extends State<_SebhaScreenView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(icon: Icons.menu_book_rounded, title: 'اختر الذكر'),
+          _sectionLabel(
+            icon: Icons.menu_book_rounded,
+            title: 'اختر الذكر',
+          ),
           const SizedBox(height: 13),
-          DropdownButtonFormField<String>(
-            initialValue: selectedZikr,
-            isExpanded: true,
-            icon: Icon(Icons.keyboard_arrow_down_rounded, color: _gold),
-            dropdownColor: _innerPaper,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: _paper,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 13,
+          InkWell(
+            onTap: () => _showZikrPicker(availableAzkar, selectedZikr),
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 15,
+                vertical: 15,
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _lightGold.withValues(alpha: 0.5),
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
+              decoration: BoxDecoration(
+                color: _paper,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
                   color: _lightGold.withValues(alpha: 0.6),
                 ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: _gold, width: 1.4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    color: _gold,
+                    size: 19,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      selectedZikr,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: _textColor,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: _gold,
+                    size: 25,
+                  ),
+                ],
               ),
             ),
-            items: availableAzkar.map((zikr) {
-              return DropdownMenuItem<String>(
-                value: zikr,
-                child: Text(
-                  zikr,
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: _textColor,
-                  ),
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                changeZikr(value);
-              }
-            },
           ),
         ],
       ),
     );
   }
+  Future<void> _showZikrPicker(
+      List<String> availableAzkar,
+      String selectedZikr,
+      ) async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.72,
+          ),
+          decoration: BoxDecoration(
+            color: _paper,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(28),
+            ),
+            border: Border.all(
+              color: _gold.withValues(alpha: 0.6),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _lightGold,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+                child: Row(
+                  children: [
+                    _buildIconBox(Icons.menu_book_rounded, size: 42),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'اختر الذكر',
+                            style: TextStyle(
+                              color: _textColor,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'اختر الذكر الذي تريد التسبيح به',
+                            style: TextStyle(
+                              color: _mutedColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      color: _gold,
+                      size: 22,
+                    ),
+                  ],
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: _lightGold.withValues(alpha: 0.35),
+              ),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
+                  itemCount: availableAzkar.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 9),
+                  itemBuilder: (context, index) {
+                    final zikr = availableAzkar[index];
+                    final isSelected = zikr == selectedZikr;
 
+                    return InkWell(
+                      onTap: () {
+                        Navigator.pop(sheetContext, zikr);
+                      },
+                      borderRadius: BorderRadius.circular(15),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? _gold.withValues(alpha: 0.13)
+                              : _innerPaper,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: isSelected
+                                ? _gold
+                                : _lightGold.withValues(alpha: 0.35),
+                            width: isSelected ? 1.3 : 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isSelected
+                                  ? Icons.check_circle_rounded
+                                  : Icons.circle_outlined,
+                              color: _gold,
+                              size: 21,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                zikr,
+                                textDirection: TextDirection.rtl,
+                                style: TextStyle(
+                                  color: _textColor,
+                                  fontSize: 14,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w900
+                                      : FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            if (isSelected)
+                              Text(
+                                'الحالي',
+                                style: TextStyle(
+                                  color: _gold,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result != null && result != selectedZikr) {
+      await changeZikr(result);
+    }
+  }
   Widget _buildTargetSelector(SebhaState state) {
     return _paperCard(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),

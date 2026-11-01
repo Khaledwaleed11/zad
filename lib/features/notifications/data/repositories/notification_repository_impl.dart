@@ -1,4 +1,3 @@
-
 import '../../domain/repositories/notification_repository.dart';
 import '../datasources/notification_local_data_source.dart';
 
@@ -27,5 +26,15 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<void> cancelAzkarNotifications() async {
     await localDataSource.cancelAzkarNotifications();
+  }
+
+  @override
+  Future<void> scheduleSalawatNotifications() async {
+    await localDataSource.scheduleSalawatNotifications();
+  }
+
+  @override
+  Future<void> cancelSalawatNotifications() async {
+    await localDataSource.cancelSalawatNotifications();
   }
 }

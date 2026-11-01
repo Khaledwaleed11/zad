@@ -25,6 +25,7 @@ class QuranCubit extends Cubit<QuranState> {
 
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<int?>? _currentAyahSubscription;
+  bool _ownsAudio = false;
 
   QuranCubit({
     required this.getRandomAyah,
@@ -32,10 +33,13 @@ class QuranCubit extends Cubit<QuranState> {
     required this.getSurahAyahs,
     required this.getAllReciters,
     required this.audioDataSource,
-  }) : super(const QuranState()) {
+  }) : super(const QuranState());
+  void startAudioListening({bool ownsAudio = false}) {
+    if (isClosed || _playerStateSubscription != null) return;
+
+    _ownsAudio = ownsAudio;
     _listenToAudio();
   }
-
   void _listenToAudio() {
     _playerStateSubscription =
         audioDataSource.playerStateStream.listen((playerState) {
@@ -59,7 +63,7 @@ class QuranCubit extends Cubit<QuranState> {
     _currentAyahSubscription =
         audioDataSource.currentAyahNumberStream.listen((ayahNumber) {
           if (isClosed) return;
-
+          print('CUBIT RECEIVED AYAH: $ayahNumber');
           emit(
             state.copyWith(
               currentAyahNumber: ayahNumber,
@@ -374,7 +378,10 @@ class QuranCubit extends Cubit<QuranState> {
   Future<void> close() async {
     await _playerStateSubscription?.cancel();
     await _currentAyahSubscription?.cancel();
-    await audioDataSource.stop();
+
+    if (_ownsAudio) {
+      await audioDataSource.stop();
+    }
 
     return super.close();
   }

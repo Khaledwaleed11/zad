@@ -38,8 +38,11 @@ import '../../features/notifications/domain/repositories/notification_repository
 import '../../features/notifications/domain/usecases/cancel_azkar_notifications.dart';
 import '../../features/notifications/domain/usecases/cancel_prayer_notifications.dart';
 import '../../features/notifications/domain/usecases/initialize_notifications.dart';
+import '../../features/notifications/domain/usecases/save_salawat_notifications.dart';
 import '../../features/notifications/domain/usecases/schedule_azkar_notifications.dart';
 import '../../features/notifications/domain/usecases/schedule_prayer_notifications.dart';
+import '../../features/notifications/domain/usecases/schedule_salawat_notifications.dart';
+import '../../features/notifications/domain/usecases/cancel_salawat_notifications.dart';
 import '../../features/prayer_times/data/datasources/prayer_remote_data_source.dart';
 import '../../features/prayer_times/data/repositories/prayer_repository_impl.dart';
 import '../../features/prayer_times/domain/repositories/prayer_repository.dart';
@@ -203,17 +206,21 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SavePrayerNotifications(sl()));
   sl.registerLazySingleton(() => SaveAzkarNotifications(sl()));
   sl.registerLazySingleton(() => SaveAdhanEnabled(sl()));
+  sl.registerLazySingleton(() => SaveSalawatNotifications(sl()));
 
   sl.registerFactory(
-    () => SettingsCubit(
+        () => SettingsCubit(
       getNotificationSettings: sl(),
       savePrayerNotifications: sl(),
       saveAzkarNotifications: sl(),
       saveAdhanEnabled: sl(),
+      saveSalawatNotifications: sl(),
       schedulePrayerNotifications: sl(),
       cancelPrayerNotifications: sl(),
       scheduleAzkarNotifications: sl(),
       cancelAzkarNotifications: sl(),
+      scheduleSalawatNotifications: sl(),
+      cancelSalawatNotifications: sl(),
     ),
   );
 
@@ -237,13 +244,17 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => CancelPrayerNotifications(sl()));
   sl.registerLazySingleton(() => ScheduleAzkarNotifications(sl()));
   sl.registerLazySingleton(() => CancelAzkarNotifications(sl()));
+  sl.registerLazySingleton(() => ScheduleSalawatNotifications(sl()));
+  sl.registerLazySingleton(() => CancelSalawatNotifications(sl()));
   sl.registerLazySingleton(
-    () => InitializeNotifications(
+        () => InitializeNotifications(
       getNotificationSettings: sl(),
       schedulePrayerNotifications: sl(),
       cancelPrayerNotifications: sl(),
       scheduleAzkarNotifications: sl(),
       cancelAzkarNotifications: sl(),
+      scheduleSalawatNotifications: sl(),
+      cancelSalawatNotifications: sl(),
     ),
   );
 

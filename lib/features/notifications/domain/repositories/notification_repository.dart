@@ -1,4 +1,3 @@
-
 abstract class NotificationRepository {
   Future<void> schedulePrayerNotifications();
 
@@ -7,4 +6,8 @@ abstract class NotificationRepository {
   Future<void> scheduleAzkarNotifications();
 
   Future<void> cancelAzkarNotifications();
+
+  Future<void> scheduleSalawatNotifications();
+
+  Future<void> cancelSalawatNotifications();
 }

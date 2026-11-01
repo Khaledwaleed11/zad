@@ -12,6 +12,7 @@ class SettingsState extends Equatable {
   final bool prayerNotificationsEnabled;
   final bool azkarNotificationsEnabled;
   final bool adhanEnabled;
+  final bool salawatNotificationsEnabled;
   final String? errorMessage;
 
   const SettingsState({
@@ -19,6 +20,7 @@ class SettingsState extends Equatable {
     this.prayerNotificationsEnabled = true,
     this.azkarNotificationsEnabled = true,
     this.adhanEnabled = false,
+    this.salawatNotificationsEnabled = false,
     this.errorMessage,
   });
 
@@ -27,6 +29,7 @@ class SettingsState extends Equatable {
     bool? prayerNotificationsEnabled,
     bool? azkarNotificationsEnabled,
     bool? adhanEnabled,
+    bool? salawatNotificationsEnabled,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -37,6 +40,8 @@ class SettingsState extends Equatable {
       azkarNotificationsEnabled:
       azkarNotificationsEnabled ?? this.azkarNotificationsEnabled,
       adhanEnabled: adhanEnabled ?? this.adhanEnabled,
+      salawatNotificationsEnabled:
+      salawatNotificationsEnabled ?? this.salawatNotificationsEnabled,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
     );
   }
@@ -47,6 +52,7 @@ class SettingsState extends Equatable {
     prayerNotificationsEnabled,
     azkarNotificationsEnabled,
     adhanEnabled,
+    salawatNotificationsEnabled,
     errorMessage,
   ];
 }

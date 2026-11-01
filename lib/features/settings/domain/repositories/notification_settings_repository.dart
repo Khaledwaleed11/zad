@@ -8,4 +8,6 @@ abstract class NotificationSettingsRepository {
   Future<void> saveAzkarNotifications(bool enabled);
 
   Future<void> saveAdhanEnabled(bool enabled);
+
+  Future<void> saveSalawatNotifications(bool enabled);
 }

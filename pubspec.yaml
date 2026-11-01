@@ -27,6 +27,7 @@
     equatable:
     file_picker:
     path_provider:
+    hijri: ^3.0.1
 
   dev_dependencies:
     flutter_test:

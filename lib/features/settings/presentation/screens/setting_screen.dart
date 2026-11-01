@@ -1,3 +1,7 @@
+
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zad/core/constants/app_constants.dart';
@@ -6,6 +10,7 @@ import '../../../../../../../core/dependency_injection/injection_container.dart'
 import '../../../../../../../core/theme/cubit/theme_cubit.dart';
 import '../../../../../../../core/theme/cubit/theme_state.dart';
 import '../../../audio_library/presentation/screens/audio_library_screen.dart';
+import '../../../notifications/data/datasources/notification_service.dart';
 import '../cubit/settings_cubit.dart';
 import '../cubit/settings_state.dart';
 import '../widgets/setting_tile.dart';
@@ -40,7 +45,10 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   late Animation<Offset> _applicationAnimation;
   late Animation<Offset> _footerAnimation;
 
-  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Timer? _countdownTimer;
+
+  bool get _isDark =>
+      Theme.of(context).brightness == Brightness.dark;
 
   Color get _paper =>
       _isDark ? const Color(0xFF252017) : const Color(0xFFF7F1DF);
@@ -86,7 +94,11 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
       0.45,
     );
 
-    _prayerAnimation = _createSlideAnimation(const Offset(0, 0.08), 0.30, 0.60);
+    _prayerAnimation = _createSlideAnimation(
+      const Offset(0, 0.08),
+      0.30,
+      0.60,
+    );
 
     _applicationAnimation = _createSlideAnimation(
       const Offset(0, 0.08),
@@ -94,26 +106,47 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
       0.75,
     );
 
-    _footerAnimation = _createSlideAnimation(const Offset(0, 0.08), 0.65, 1.00);
+    _footerAnimation = _createSlideAnimation(
+      const Offset(0, 0.08),
+      0.65,
+      1.00,
+    );
 
     _pageController.forward();
+
+    _countdownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+          (_) {
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
   }
 
   Animation<Offset> _createSlideAnimation(
-    Offset begin,
-    double start,
-    double end,
-  ) {
-    return Tween<Offset>(begin: begin, end: Offset.zero).animate(
+      Offset begin,
+      double start,
+      double end,
+      ) {
+    return Tween<Offset>(
+      begin: begin,
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(
         parent: _pageController,
-        curve: Interval(start, end, curve: Curves.easeOutCubic),
+        curve: Interval(
+          start,
+          end,
+          curve: Curves.easeOutCubic,
+        ),
       ),
     );
   }
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -124,21 +157,27 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   }) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: SlideTransition(position: slide, child: child),
+      child: SlideTransition(
+        position: slide,
+        child: child,
+      ),
     );
   }
 
   void _openAudioLibrary() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const AudioLibraryScreen()));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const AudioLibraryScreen(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
-        final isLoading = settingsState.status == SettingsStatus.loading;
+        final isLoading =
+            settingsState.status == SettingsStatus.loading;
 
         return Scaffold(
           backgroundColor: _paper,
@@ -151,7 +190,8 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                 slide: _headerAnimation,
                 child: _buildHeroHeader(),
               ),
-              const SizedBox(height: 26),
+
+              const SizedBox(height: 34),
 
               _animatedSection(
                 slide: _appearanceAnimation,
@@ -167,7 +207,8 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                   ],
                 ),
               ),
-              const SizedBox(height: 26),
+
+              const SizedBox(height: 34),
 
               _animatedSection(
                 slide: _prayerAnimation,
@@ -188,7 +229,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                           trailing: _buildArrow(),
                           onTap: () {},
                         ),
+
                         _buildGroupDivider(),
+
                         _buildTile(
                           icon: Icons.calculate_outlined,
                           title: 'طريقة حساب الصلاة',
@@ -196,26 +239,32 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                           trailing: _buildArrow(),
                           onTap: () {},
                         ),
+
                         _buildGroupDivider(),
+
                         _buildTile(
                           icon: Icons.notifications_active_outlined,
                           title: 'إشعارات الصلاة',
-                          subtitle: settingsState.prayerNotificationsEnabled
+                          subtitle:
+                          settingsState.prayerNotificationsEnabled
                               ? 'إشعارات أوقات الصلاة مفعلة'
                               : 'إشعارات أوقات الصلاة متوقفة',
                           trailing: Switch.adaptive(
-                            value: settingsState.prayerNotificationsEnabled,
+                            value: settingsState
+                                .prayerNotificationsEnabled,
                             activeTrackColor: _gold,
                             onChanged: isLoading
                                 ? null
                                 : (value) {
-                                    context
-                                        .read<SettingsCubit>()
-                                        .togglePrayerNotifications(value);
-                                  },
+                              context
+                                  .read<SettingsCubit>()
+                                  .togglePrayerNotifications(value);
+                            },
                           ),
                         ),
+
                         _buildGroupDivider(),
+
                         _buildTile(
                           icon: Icons.volume_up_rounded,
                           title: 'الأذان الصوتي',
@@ -228,10 +277,10 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                             onChanged: isLoading
                                 ? null
                                 : (value) {
-                                    context.read<SettingsCubit>().toggleAdhan(
-                                      value,
-                                    );
-                                  },
+                              context
+                                  .read<SettingsCubit>()
+                                  .toggleAdhan(value);
+                            },
                           ),
                         ),
                       ],
@@ -239,7 +288,8 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                   ],
                 ),
               ),
-              const SizedBox(height: 26),
+
+              const SizedBox(height: 34),
 
               _animatedSection(
                 slide: _applicationAnimation,
@@ -250,28 +300,72 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                       title: 'التطبيق',
                       subtitle: 'معلومات وإعدادات التطبيق',
                     ),
-                    const SizedBox(height: 12),
+
+                    const SizedBox(height: 16),
+
                     _buildSettingsGroup(
                       children: [
                         _buildTile(
                           icon: Icons.notifications_none_rounded,
                           title: 'إشعارات الأذكار',
-                          subtitle: settingsState.azkarNotificationsEnabled
+                          subtitle:
+                          settingsState.azkarNotificationsEnabled
                               ? 'تذكيرات الأذكار اليومية مفعلة'
                               : 'تذكيرات الأذكار اليومية متوقفة',
                           trailing: Switch.adaptive(
-                            value: settingsState.azkarNotificationsEnabled,
+                            value: settingsState
+                                .azkarNotificationsEnabled,
                             activeTrackColor: _gold,
                             onChanged: isLoading
                                 ? null
                                 : (value) {
-                                    context
-                                        .read<SettingsCubit>()
-                                        .toggleAzkarNotifications(value);
-                                  },
+                              context
+                                  .read<SettingsCubit>()
+                                  .toggleAzkarNotifications(value);
+                            },
                           ),
                         ),
+
                         _buildGroupDivider(),
+
+                        _buildTile(
+                          icon: Icons.favorite_rounded,
+                          title: 'الصلاة على النبي ﷺ',
+                          subtitle:
+                          settingsState.salawatNotificationsEnabled
+                              ? 'تذكيرات الصلاة على النبي مفعلة'
+                              : 'تذكيرات الصلاة على النبي متوقفة',
+                          trailing: Switch.adaptive(
+                            value: settingsState
+                                .salawatNotificationsEnabled,
+                            activeTrackColor: _gold,
+                            onChanged: isLoading
+                                ? null
+                                : (value) async {
+                              await context
+                                  .read<SettingsCubit>()
+                                  .toggleSalawatNotifications(value);
+
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
+                          ),
+                        ),
+
+                        if (settingsState.salawatNotificationsEnabled)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              start: 12,
+                              end: 12,
+                              top: 4,
+                              bottom: 10,
+                            ),
+                            child: _buildSalawatCountdown(),
+                          ),
+
+                        _buildGroupDivider(),
+
                         _buildTile(
                           icon: Icons.library_music_outlined,
                           title: 'المكتبة الصوتية',
@@ -279,7 +373,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                           trailing: _buildArrow(),
                           onTap: _openAudioLibrary,
                         ),
+
                         _buildGroupDivider(),
+
                         _buildTile(
                           icon: Icons.info_outline_rounded,
                           title: 'عن زاد',
@@ -287,7 +383,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                           trailing: _buildArrow(),
                           onTap: () => _showAboutDialog(context),
                         ),
+
                         _buildGroupDivider(),
+
                         _buildTile(
                           icon: Icons.verified_outlined,
                           title: 'الإصدار',
@@ -299,13 +397,94 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                   ],
                 ),
               ),
+
               const SizedBox(height: 32),
 
-              _animatedSection(slide: _footerAnimation, child: _buildFooter()),
+              _animatedSection(
+                slide: _footerAnimation,
+                child: _buildFooter(),
+              ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSalawatCountdown() {
+    final nextTime =
+    NotificationService.getNextSalawatNotificationTime();
+
+    if (nextTime == null) {
+      return const SizedBox.shrink();
+    }
+
+    final remaining = nextTime.difference(DateTime.now());
+    final isFinished = remaining.inSeconds <= 0;
+
+    final hours = remaining.inHours;
+    final minutes = remaining.inMinutes.remainder(60);
+    final seconds = remaining.inSeconds.remainder(60);
+
+    final time = hours > 0
+        ? '${hours.toString().padLeft(2, '0')}:'
+        '${minutes.toString().padLeft(2, '0')}:'
+        '${seconds.toString().padLeft(2, '0')}'
+        : '${minutes.toString().padLeft(2, '0')}:'
+        '${seconds.toString().padLeft(2, '0')}';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 11,
+      ),
+      decoration: BoxDecoration(
+        color: _gold.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.schedule_rounded,
+            size: 19,
+            color: _gold,
+          ),
+
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Text(
+              isFinished
+                  ? 'حان موعد التذكير'
+                  : 'التذكير القادم بعد',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: _mutedColor,
+              ),
+            ),
+          ),
+
+          if (!isFinished)
+            Text(
+              time,
+              textDirection: TextDirection.ltr,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                color: _gold,
+                fontFeatures: const [
+                  FontFeature.tabularFigures(),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -341,9 +520,15 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
       decoration: BoxDecoration(
         color: _gold.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: _gold.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.4),
+        ),
       ),
-      child: Icon(icon, size: size * 0.52, color: _gold),
+      child: Icon(
+        icon,
+        size: size * 0.52,
+        color: _gold,
+      ),
     );
   }
 
@@ -358,7 +543,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
       decoration: BoxDecoration(
         color: _gold.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(radius + 3),
-        border: Border.all(color: _gold.withValues(alpha: 0.75)),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.75),
+        ),
       ),
       child: Container(
         padding: padding,
@@ -372,7 +559,11 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
         ),
         child: Stack(
           children: [
-            Positioned(top: 0, right: 0, child: _cornerDecoration()),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: _cornerDecoration(),
+            ),
             Positioned(
               top: 0,
               left: 0,
@@ -429,9 +620,15 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                 width: 1.3,
               ),
             ),
-            child: Icon(Icons.settings_rounded, color: _gold, size: 29),
+            child: Icon(
+              Icons.settings_rounded,
+              color: _gold,
+              size: 29,
+            ),
           ),
+
           const SizedBox(width: 14),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -465,6 +662,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
               ],
             ),
           ),
+
           Icon(
             Icons.auto_awesome_rounded,
             size: 21,
@@ -512,11 +710,18 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
     );
   }
 
-  Widget _buildSettingsGroup({required List<Widget> children}) {
+  Widget _buildSettingsGroup({
+    required List<Widget> children,
+  }) {
     return _paperCard(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 12,
+      ),
       radius: 19,
-      child: Column(children: children),
+      child: Column(
+        children: children,
+      ),
     );
   }
 
@@ -551,7 +756,10 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
 
   Widget _buildGroupDivider() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
       child: Divider(
         height: 1,
         thickness: 0.7,
@@ -563,7 +771,8 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   Widget _buildThemeTile() {
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
-        final isDarkMode = state.themeMode == ThemeMode.dark;
+        final isDarkMode =
+            state.themeMode == ThemeMode.dark;
 
         return _buildSettingsGroup(
           children: [
@@ -572,7 +781,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                   ? Icons.dark_mode_rounded
                   : Icons.light_mode_rounded,
               title: 'الوضع الداكن',
-              subtitle: isDarkMode ? 'الوضع الداكن مفعل' : 'الوضع الفاتح مفعل',
+              subtitle: isDarkMode
+                  ? 'الوضع الداكن مفعل'
+                  : 'الوضع الفاتح مفعل',
               trailing: Switch.adaptive(
                 key: ValueKey('theme-switch-$isDarkMode'),
                 value: isDarkMode,
@@ -589,16 +800,25 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   }
 
   Widget _buildArrow() {
-    return Icon(Icons.chevron_right_rounded, color: _gold, size: 23);
+    return Icon(
+      Icons.chevron_right_rounded,
+      color: _gold,
+      size: 23,
+    );
   }
 
   Widget _buildVersionBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 11,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: _gold.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _gold.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.4),
+        ),
       ),
       child: Text(
         '1.0.0',
@@ -620,11 +840,19 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
           decoration: BoxDecoration(
             color: _gold.withValues(alpha: 0.12),
             shape: BoxShape.circle,
-            border: Border.all(color: _gold.withValues(alpha: 0.5)),
+            border: Border.all(
+              color: _gold.withValues(alpha: 0.5),
+            ),
           ),
-          child: Icon(Icons.auto_awesome_rounded, size: 27, color: _gold),
+          child: Icon(
+            Icons.auto_awesome_rounded,
+            size: 27,
+            color: _gold,
+          ),
         ),
+
         const SizedBox(height: 12),
+
         Text(
           AppConstants.appName,
           style: TextStyle(
@@ -634,7 +862,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
             color: _gold,
           ),
         ),
+
         const SizedBox(height: 6),
+
         Text(
           'زادك في طريقك إلى الله',
           style: TextStyle(
@@ -643,7 +873,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
             color: _mutedColor,
           ),
         ),
+
         const SizedBox(height: 12),
+
         Container(
           width: 55,
           height: 3,
@@ -663,7 +895,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+          ),
           child: _paperCard(
             radius: 23,
             padding: const EdgeInsets.all(22),
@@ -676,7 +910,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                   decoration: BoxDecoration(
                     color: _gold.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
-                    border: Border.all(color: _gold.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: _gold.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Icon(
                     Icons.auto_awesome_rounded,
@@ -684,7 +920,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                     color: _gold,
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
                 Text(
                   'عن زاد',
                   style: TextStyle(
@@ -693,7 +931,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                     color: _textColor,
                   ),
                 ),
+
                 const SizedBox(height: 10),
+
                 Text(
                   'زاد هو تطبيق إسلامي يساعدك على متابعة القرآن الكريم والأذكار ومواقيت الصلاة واتجاه القبلة والسبحة في مكان واحد.',
                   textAlign: TextAlign.center,
@@ -703,7 +943,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                     color: _mutedColor,
                   ),
                 ),
+
                 const SizedBox(height: 18),
+
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -713,12 +955,18 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                   decoration: BoxDecoration(
                     color: _gold.withValues(alpha: 0.09),
                     borderRadius: BorderRadius.circular(13),
-                    border: Border.all(color: _gold.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: _gold.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.verified_outlined, size: 17, color: _gold),
+                      Icon(
+                        Icons.verified_outlined,
+                        size: 17,
+                        color: _gold,
+                      ),
                       const SizedBox(width: 7),
                       Text(
                         'الإصدار 1.0.0',
@@ -731,14 +979,18 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 18),
+
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
                     style: FilledButton.styleFrom(
                       backgroundColor: _gold,
                       foregroundColor: _innerPaper,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 13,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(13),
                       ),
@@ -748,7 +1000,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                     },
                     child: const Text(
                       'إغلاق',
-                      style: TextStyle(fontWeight: FontWeight.w900),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
