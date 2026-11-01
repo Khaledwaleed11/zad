@@ -14,9 +14,13 @@ class MainActivity : FlutterActivity() {
 
     private val channelName = "com.example.zad/adhan"
     private val azkarChannelName = "com.example.zad/azkar"
+    private val salawatChannelName = "com.example.zad/salawat"
 
     private var azkarMethodChannel: MethodChannel? = null
+    private var salawatMethodChannel: MethodChannel? = null
+
     private var pendingAzkarPayload: String? = null
+    private var pendingSalawatPayload: String? = null
 
     private fun hasExactAlarmPermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -33,7 +37,6 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // Existing Adhan channel
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             channelName
@@ -149,7 +152,6 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        // New Azkar channel
         azkarMethodChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             azkarChannelName
@@ -208,11 +210,18 @@ class MainActivity : FlutterActivity() {
                 }
 
                 "getInitialAzkarPayload" -> {
-                    val payload = pendingAzkarPayload
-                        ?: intent?.getStringExtra("notification_payload")
+                    val pendingPayload = pendingAzkarPayload
+                    val intentPayload =
+                        intent?.getStringExtra("notification_payload")
+
+                    val payload = pendingPayload
+                        ?: intentPayload?.takeIf { it != "salawat" }
 
                     pendingAzkarPayload = null
-                    intent?.removeExtra("notification_payload")
+
+                    if (payload != null) {
+                        intent?.removeExtra("notification_payload")
+                    }
 
                     result.success(payload)
                 }
@@ -221,13 +230,81 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        // Deliver a notification tap that arrived before the channel was ready.
+        salawatMethodChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            salawatChannelName
+        )
+
+        salawatMethodChannel?.setMethodCallHandler { call, result ->
+
+            when (call.method) {
+
+                "scheduleSalawatAlarm" -> {
+                    try {
+                        val nextTime =
+                            SalawatAlarmScheduler.schedule(applicationContext)
+
+                        result.success(nextTime)
+                    } catch (exception: Exception) {
+                        result.error(
+                            "SALAWAT_SCHEDULE_ERROR",
+                            exception.message,
+                            null
+                        )
+                    }
+                }
+
+                "cancelSalawatAlarm" -> {
+                    try {
+                        SalawatAlarmScheduler.cancel(applicationContext)
+                        result.success(true)
+                    } catch (exception: Exception) {
+                        result.error(
+                            "SALAWAT_CANCEL_ERROR",
+                            exception.message,
+                            null
+                        )
+                    }
+                }
+
+                "getNextSalawatTime" -> {
+                    result.success(
+                        SalawatAlarmScheduler.getNextTime(applicationContext)
+                    )
+                }
+
+                "getInitialSalawatPayload" -> {
+                    val payload = pendingSalawatPayload
+                        ?: intent?.getStringExtra("notification_payload")
+                            ?.takeIf { it == "salawat" }
+
+                    pendingSalawatPayload = null
+
+                    if (payload == "salawat") {
+                        intent?.removeExtra("notification_payload")
+                    }
+
+                    result.success(payload)
+                }
+
+                else -> result.notImplemented()
+            }
+        }
+
         pendingAzkarPayload?.let { payload ->
             azkarMethodChannel?.invokeMethod(
                 "onAzkarNotificationTapped",
                 payload
             )
             pendingAzkarPayload = null
+        }
+
+        pendingSalawatPayload?.let { payload ->
+            salawatMethodChannel?.invokeMethod(
+                "onSalawatNotificationTapped",
+                payload
+            )
+            pendingSalawatPayload = null
         }
     }
 
@@ -238,15 +315,33 @@ class MainActivity : FlutterActivity() {
         val payload = intent.getStringExtra("notification_payload")
             ?: return
 
-        val channel = azkarMethodChannel
+        when (payload) {
 
-        if (channel == null) {
-            pendingAzkarPayload = payload
-        } else {
-            channel.invokeMethod(
-                "onAzkarNotificationTapped",
-                payload
-            )
+            "salawat" -> {
+                val channel = salawatMethodChannel
+
+                if (channel == null) {
+                    pendingSalawatPayload = payload
+                } else {
+                    channel.invokeMethod(
+                        "onSalawatNotificationTapped",
+                        payload
+                    )
+                }
+            }
+
+            else -> {
+                val channel = azkarMethodChannel
+
+                if (channel == null) {
+                    pendingAzkarPayload = payload
+                } else {
+                    channel.invokeMethod(
+                        "onAzkarNotificationTapped",
+                        payload
+                    )
+                }
+            }
         }
     }
 }

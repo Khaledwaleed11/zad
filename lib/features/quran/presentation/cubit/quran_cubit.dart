@@ -1,10 +1,8 @@
 import '../../../../core/constants/storage_constants.dart';
 import 'dart:async';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
-
 import '../../data/datasources/quran_audio_data_source.dart';
 import '../../domain/entities/quran_ayah_entity.dart';
 import '../../domain/entities/reciter_entity.dart';

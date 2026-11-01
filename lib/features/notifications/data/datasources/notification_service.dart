@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:hive_flutter/hive_flutter.dart';
+
 import '../../../../core/constants/storage_constants.dart';
 import '../../../../models/prayer_times_model.dart';
 import '../../presentation/services/notification_navigation_service.dart';
@@ -17,33 +18,59 @@ class NotificationService {
     'com.example.zad/azkar',
   );
 
+  static const MethodChannel _salawatChannel = MethodChannel(
+    'com.example.zad/salawat',
+  );
+
   static GlobalKey<NavigatorState> get navigatorKey =>
       NotificationNavigationService.navigatorKey;
 
   static const int _prayerIdPrefix = 500000000;
 
-  // Legacy Flutter notification IDs.
-  // We keep them to cancel previously scheduled Azkar notifications.
   static const int _morningAzkarId = 201;
   static const int _eveningAzkarId = 202;
   static const int _sleepAzkarId = 203;
 
-  static const int _salawatTestIntervalMinutes = 5;
   static const String _salawatNextNotificationKey = 'next_notification';
 
   static Box get _salawatScheduleBox =>
       Hive.box(StorageConstants.salawatScheduleBox);
 
   static DateTime? getNextSalawatNotificationTime() {
-    final timestamp = _salawatScheduleBox.get(
-      _salawatNextNotificationKey,
-    );
+    final timestamp = _salawatScheduleBox.get(_salawatNextNotificationKey);
 
     if (timestamp is int) {
       return DateTime.fromMillisecondsSinceEpoch(timestamp);
     }
 
     return null;
+  }
+
+  static Future<void> refreshNextSalawatNotificationTime() async {
+    try {
+      final timestamp = await _salawatChannel.invokeMethod<int>(
+        'getNextSalawatTime',
+      );
+
+      final currentTimestamp = _salawatScheduleBox.get(
+        _salawatNextNotificationKey,
+      );
+
+      if (timestamp != null && timestamp > 0) {
+        if (currentTimestamp != timestamp) {
+          await _salawatScheduleBox.put(
+            _salawatNextNotificationKey,
+            timestamp,
+          );
+        }
+      } else if (currentTimestamp != null) {
+        await _salawatScheduleBox.delete(
+          _salawatNextNotificationKey,
+        );
+      }
+    } catch (e) {
+      debugPrint('Failed to refresh Salawat notification time: $e');
+    }
   }
 
   static const AndroidNotificationDetails _prayerAndroidDetails =
@@ -60,24 +87,6 @@ class NotificationService {
 
   static const int _salawatIdPrefix = 301;
   static const int _salawatCount = 16;
-
-  static const AndroidNotificationDetails _salawatAndroidDetails =
-      AndroidNotificationDetails(
-        'zad_salawat_channel_v1',
-        'Salawat Notifications',
-        channelDescription: 'Daily salawat reminders',
-        importance: Importance.high,
-        priority: Priority.high,
-        playSound: true,
-        sound: RawResourceAndroidNotificationSound('zad_salat_alanabi'),
-        enableVibration: true,
-        color: Color(0xFF776344),
-        category: AndroidNotificationCategory.reminder,
-        styleInformation: BigTextStyleInformation(
-          'اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️',
-          summaryText: 'ZAD | زاد',
-        ),
-      );
 
   static Future<void> initialize() async {
     tz.initializeTimeZones();
@@ -97,7 +106,6 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-    // Handle taps on native Azkar notifications while the app is running.
     _azkarChannel.setMethodCallHandler((call) async {
       if (call.method == 'onAzkarNotificationTapped') {
         final payload = call.arguments as String?;
@@ -106,7 +114,6 @@ class NotificationService {
       }
     });
 
-    // Handle a native Azkar notification that launched the app.
     final initialAzkarPayload = await _azkarChannel.invokeMethod<String>(
       'getInitialAzkarPayload',
     );
@@ -115,7 +122,22 @@ class NotificationService {
       NotificationNavigationService.onNotificationTapped(initialAzkarPayload);
     }
 
-    // Handle Flutter local notification launches (prayer and salawat).
+    _salawatChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onSalawatNotificationTapped') {
+        final payload = call.arguments as String?;
+
+        NotificationNavigationService.onNotificationTapped(payload);
+      }
+    });
+
+    final initialSalawatPayload = await _salawatChannel.invokeMethod<String>(
+      'getInitialSalawatPayload',
+    );
+
+    if (initialSalawatPayload != null && initialSalawatPayload.isNotEmpty) {
+      NotificationNavigationService.onNotificationTapped(initialSalawatPayload);
+    }
+
     final launchDetails = await _notifications
         .getNotificationAppLaunchDetails();
 
@@ -165,10 +187,6 @@ class NotificationService {
   static Future<void> handlePendingNotification() async {
     await NotificationNavigationService.handlePendingNotification();
   }
-
-  // ---------------------------------------------------------------------------
-  // Prayer Notifications - Flutter Local Notifications
-  // ---------------------------------------------------------------------------
 
   static Future<void> schedulePrayerNotifications(
     PrayerTimesModel prayerTimes,
@@ -341,46 +359,21 @@ class NotificationService {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Salawat Notifications - Flutter Local Notifications
-  // ---------------------------------------------------------------------------
   static Future<void> scheduleSalawatNotifications() async {
-    // التحقق من وجود موعد سابق صالح.
-    final existingTime = getNextSalawatNotificationTime();
+    try {
+      final timestamp = await _salawatChannel.invokeMethod<int>(
+        'scheduleSalawatAlarm',
+      );
 
-    if (existingTime != null &&
-        existingTime.isAfter(DateTime.now())) {
-      return;
+      if (timestamp != null && timestamp > 0) {
+        await _salawatScheduleBox.put(_salawatNextNotificationKey, timestamp);
+      }
+    } catch (e) {
+      debugPrint('Failed to schedule Salawat notification: $e');
+      rethrow;
     }
-
-    // إلغاء أي مواعيد قديمة للصلاة على النبي.
-    await cancelSalawatNotifications();
-
-    final scheduledDate = tz.TZDateTime.now(tz.local).add(
-      const Duration(minutes: _salawatTestIntervalMinutes),
-    );
-
-    final exactAvailable = await _canUseExactAlarms();
-    final scheduleMode = _getScheduleMode(exactAvailable);
-
-    await _notifications.zonedSchedule(
-      id: _salawatIdPrefix,
-      title: 'صلِّ على النبي ﷺ',
-      body: 'اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️',
-      payload: 'salawat',
-      scheduledDate: scheduledDate,
-      notificationDetails: const NotificationDetails(
-        android: _salawatAndroidDetails,
-      ),
-      androidScheduleMode: scheduleMode,
-    );
-
-    // حفظ موعد الإشعار لاستخدامه في العدّاد.
-    await _salawatScheduleBox.put(
-      _salawatNextNotificationKey,
-      scheduledDate.millisecondsSinceEpoch,
-    );
   }
+
   static Future<void> testSalawatNotification() async {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -405,41 +398,37 @@ class NotificationService {
   }
 
   static Future<void> cancelSalawatNotifications() async {
-    for (int i = 0; i < _salawatCount; i++) {
-      await _notifications.cancel(id: _salawatIdPrefix + i);
-    }
+    try {
+      await _salawatChannel.invokeMethod<void>('cancelSalawatAlarm');
 
-    await _salawatScheduleBox.delete(_salawatNextNotificationKey);
+      for (int i = 0; i < _salawatCount; i++) {
+        await _notifications.cancel(id: _salawatIdPrefix + i);
+      }
+
+      await _salawatScheduleBox.delete(_salawatNextNotificationKey);
+    } catch (e) {
+      debugPrint('Failed to cancel Salawat notification: $e');
+      rethrow;
+    }
   }
 
-  // ---------------------------------------------------------------------------
-  // Azkar Notifications - Native Android
-  // ---------------------------------------------------------------------------
-
   static Future<void> scheduleAzkarNotifications() async {
-    // Cancel old Flutter notifications and any previous native alarms.
     await cancelAzkarNotifications();
 
     await _azkarChannel.invokeMethod<void>('scheduleAzkarAlarms');
   }
 
   static Future<void> cancelAzkarNotifications() async {
-    // Remove notifications scheduled by the old Flutter implementation.
     await _notifications.cancel(id: _morningAzkarId);
     await _notifications.cancel(id: _eveningAzkarId);
     await _notifications.cancel(id: _sleepAzkarId);
 
-    // Cancel native Android alarms.
     await _azkarChannel.invokeMethod<void>('cancelAzkarAlarms');
   }
 
   static Future<void> testAzkarNotification() async {
     await _azkarChannel.invokeMethod<void>('showTestAzkarNotification');
   }
-
-  // ---------------------------------------------------------------------------
-  // Date Helpers
-  // ---------------------------------------------------------------------------
 
   static tz.TZDateTime _nextDailyTime(tz.TZDateTime now, int hour, int minute) {
     var scheduled = tz.TZDateTime(
@@ -525,10 +514,6 @@ class NotificationService {
 
     return _prayerIdPrefix + (date * 10) + prayerNumber;
   }
-
-  // ---------------------------------------------------------------------------
-  // Cancellation & Debug
-  // ---------------------------------------------------------------------------
 
   static Future<void> cancelPrayerNotifications() async {
     final pending = await _notifications.pendingNotificationRequests();

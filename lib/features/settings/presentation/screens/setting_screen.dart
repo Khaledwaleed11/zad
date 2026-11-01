@@ -46,7 +46,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   late Animation<Offset> _footerAnimation;
 
   Timer? _countdownTimer;
-
+  bool _isRefreshingSalawatTime = false;
   bool get _isDark =>
       Theme.of(context).brightness == Brightness.dark;
 
@@ -114,13 +114,11 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
 
     _pageController.forward();
 
+    _refreshSalawatCountdown();
+
     _countdownTimer = Timer.periodic(
       const Duration(seconds: 1),
-          (_) {
-        if (mounted) {
-          setState(() {});
-        }
-      },
+          (_) => _refreshSalawatCountdown(),
     );
   }
 
@@ -170,6 +168,21 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
         builder: (_) => const AudioLibraryScreen(),
       ),
     );
+  }
+  Future<void> _refreshSalawatCountdown() async {
+    if (_isRefreshingSalawatTime) return;
+
+    _isRefreshingSalawatTime = true;
+
+    try {
+      await NotificationService.refreshNextSalawatNotificationTime();
+
+      if (mounted) {
+        setState(() {});
+      }
+    } finally {
+      _isRefreshingSalawatTime = false;
+    }
   }
 
   @override
@@ -346,7 +359,9 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                                   .read<SettingsCubit>()
                                   .toggleSalawatNotifications(value);
 
-                              if (mounted) {
+                              if (value) {
+                                await _refreshSalawatCountdown();
+                              } else if (mounted) {
                                 setState(() {});
                               }
                             },

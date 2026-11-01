@@ -1,3 +1,4 @@
+
 import '../../../settings/domain/usecases/get_notification_settings.dart';
 import 'schedule_prayer_notifications.dart';
 import 'cancel_prayer_notifications.dart';
@@ -28,11 +29,9 @@ class InitializeNotifications {
   Future<void> call() async {
     final settings = await getNotificationSettings();
 
-    if (settings.prayerNotificationsEnabled) {
-      await schedulePrayerNotifications();
-    } else {
-      await cancelPrayerNotifications();
-    }
+    // Prayer notifications and Adhan are managed independently
+    // inside PrayerService.
+    await schedulePrayerNotifications();
 
     if (settings.azkarNotificationsEnabled) {
       await scheduleAzkarNotifications();

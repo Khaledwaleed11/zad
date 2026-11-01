@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
 import '../../features/adhan_voices/data/datasources/adhan_audio_cache_data_source.dart';
@@ -83,10 +84,48 @@ import '../../services/prayer_service.dart';
 import '../../features/azkar/domain/usecases/add_custom_azkar.dart';
 import '../../features/azkar/domain/usecases/update_custom_azkar.dart';
 import '../../features/azkar/domain/usecases/delete_custom_azkar.dart';
-
+import '../../features/hadith/data/datasources/hadith_remote_data_source.dart';
+import '../../features/hadith/data/repositories/hadith_repository_impl.dart';
+import '../../features/hadith/domain/repositories/hadith_repository.dart';
+import '../../features/hadith/domain/usecases/search_hadith.dart';
+import '../../features/hadith/domain/usecases/get_hadith_details.dart';
+import '../../features/hadith/domain/usecases/get_hadith_of_the_day.dart';
+import '../../features/hadith/domain/usecases/get_random_hadith.dart';
+import '../../features/hadith/presentation/cubit/hadith_cubit.dart';
+import '../../features/hadith/data/datasources/hadith_local_data_source.dart';
+import '../constants/storage_constants.dart';
 final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
+
+  // Hadith
+  sl.registerLazySingleton<HadithRemoteDataSource>(
+        () => HadithRemoteDataSourceImpl(client: sl()),
+  );
+  sl.registerLazySingleton<HadithLocalDataSource>(
+        () => HadithLocalDataSourceImpl(
+      settingsBox: Hive.box(StorageConstants.settingsBox),
+    ),
+  );
+  sl.registerLazySingleton<HadithRepository>(
+        () => HadithRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton(() => SearchHadith(sl()));
+  sl.registerLazySingleton(() => GetHadithDetails(sl()));
+  sl.registerLazySingleton(() => GetHadithOfTheDay(sl()));
+  sl.registerLazySingleton(() => GetRandomHadith(sl()));
+  sl.registerFactory(
+        () => HadithCubit(
+      searchHadithUseCase: sl(),
+      getHadithDetailsUseCase: sl(),
+      getHadithOfTheDayUseCase: sl(),
+      getRandomHadithUseCase: sl(),
+    ),
+  );
   // ==================== Quran ====================
 
   sl.registerLazySingleton<QuranRemoteDataSource>(

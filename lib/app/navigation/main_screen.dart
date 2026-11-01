@@ -1,7 +1,10 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/dependency_injection/injection_container.dart';
 import '../../features/azkar/presentation/screens/azkar_screen.dart';
+import '../../features/hadith/presentation/cubit/hadith_cubit.dart';
+import '../../features/hadith/presentation/screens/hadith_home_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/quran/presentation/screens/quran_screen.dart';
 import '../../features/settings/presentation/screens/setting_screen.dart';
@@ -50,6 +53,10 @@ class _MainScreenState extends State<MainScreen>
       const HomeScreen(),
       const QuranScreen(),
       const AzkarScreen(),
+      BlocProvider(
+        create: (_) => sl<HadithCubit>(),
+        child: const HadithHomeScreen(),
+      ),
       const SettingsScreen(),
     ];
   }
@@ -105,6 +112,11 @@ class _MainScreenState extends State<MainScreen>
             icon: Icon(Icons.auto_awesome_outlined),
             selectedIcon: Icon(Icons.auto_awesome_rounded),
             label: 'الأذكار',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.library_books_outlined),
+            selectedIcon: Icon(Icons.library_books_rounded),
+            label: 'الأحاديث',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

@@ -28,9 +28,7 @@ class _HomeScreenState extends State<HomeScreen>
     with TickerProviderStateMixin {
   late AnimationController _entranceController;
   late AnimationController _floatingController;
-
   late Animation<double> _fadeAnimation;
-
   late Animation<Offset> _headerSlide;
   late Animation<Offset> _ayahSlide;
   late Animation<Offset> _prayerSlide;

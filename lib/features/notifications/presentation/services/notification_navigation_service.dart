@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../azkar/presentation/screens/azkar_screen.dart';
 import '../../../prayer_times/presentation/screens/prayer_times_screen.dart';
+import '../../../sebha/presentation/screens/sebha_screen.dart';
 
 class NotificationNavigationService {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -85,6 +86,14 @@ class NotificationNavigationService {
             builder: (_) => const AzkarScreen(
               initialCategory: 'sleep',
             ),
+          ),
+        );
+        break;
+
+      case 'salawat':
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) => const SebhaScreen(),
           ),
         );
         break;
