@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,10 +17,12 @@ class HadithLibraryScreen extends StatefulWidget {
 
 class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -99,14 +100,10 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
                 decoration: BoxDecoration(
                   color: innerPaperColor,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: goldColor.withValues(alpha: 0.35),
-                  ),
+                  border: Border.all(color: goldColor.withValues(alpha: 0.35)),
                   boxShadow: [
                     BoxShadow(
-                      color: goldColor.withValues(
-                        alpha: isDark ? 0.04 : 0.08,
-                      ),
+                      color: goldColor.withValues(alpha: isDark ? 0.04 : 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -150,6 +147,7 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
               const SizedBox(height: 18),
               HadithSearchField(
                 controller: _searchController,
+                focusNode: _searchFocusNode,
                 onChanged: (query) {
                   setState(() {});
                   context.read<HadithCubit>().search(query);
@@ -210,6 +208,8 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
                         return HadithSearchResultCard(
                           hadith: hadith,
                           onTap: () {
+                            _searchFocusNode.unfocus();
+
                             final hadithCubit = context.read<HadithCubit>();
 
                             Navigator.push(
@@ -255,11 +255,7 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
               color: goldColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: goldColor,
-              size: 34,
-            ),
+            child: Icon(icon, color: goldColor, size: 34),
           ),
           const SizedBox(height: 16),
           Text(
@@ -276,11 +272,7 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
             child: Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: mutedColor,
-                fontSize: 13,
-                height: 1.7,
-              ),
+              style: TextStyle(color: mutedColor, fontSize: 13, height: 1.7),
             ),
           ),
         ],

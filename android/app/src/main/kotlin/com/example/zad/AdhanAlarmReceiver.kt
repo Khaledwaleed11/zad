@@ -18,6 +18,15 @@ class AdhanAlarmReceiver : BroadcastReceiver() {
             return
         }
 
+        // Remove the fired alarm and activate the next pending alarm.
+        val alarmId = intent.getIntExtra(EXTRA_ALARM_ID, -1)
+
+        if (alarmId >= 0) {
+            AdhanAlarmScheduler.onAlarmTriggered(context, alarmId)
+        } else {
+            Log.e(TAG, "Adhan alarm ID is missing")
+        }
+
         val audioPath = intent.getStringExtra(EXTRA_AUDIO_PATH)
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: "الصلاة"
 
@@ -64,6 +73,7 @@ class AdhanAlarmReceiver : BroadcastReceiver() {
         const val ACTION_PLAY_ADHAN = "com.example.zad.action.ALARM_ADHAN"
         const val EXTRA_AUDIO_PATH = "audio_path"
         const val EXTRA_PRAYER_NAME = "prayer_name"
+        const val EXTRA_ALARM_ID = "adhan_alarm_id"
 
         private const val TAG = "AdhanAlarmReceiver"
     }

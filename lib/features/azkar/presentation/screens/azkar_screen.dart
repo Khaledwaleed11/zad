@@ -5,7 +5,11 @@ import '../../../../../../../core/dependency_injection/injection_container.dart'
 import '../../domain/entities/azkar_entity.dart';
 import '../cubit/azkar_cubit.dart';
 import '../cubit/azkar_state.dart';
-import '../widgets/zikr_card.dart';
+import '../widgets/azkar_categories.dart';
+import '../widgets/azkar_form_dialog.dart';
+import '../widgets/azkar_header.dart';
+import '../widgets/azkar_list.dart';
+import '../widgets/azkar_state_views.dart';
 
 class AzkarScreen extends StatefulWidget {
   final String initialCategory;
@@ -90,10 +94,7 @@ class _AzkarScreenState extends State<AzkarScreen>
     }
 
     return allAzkar
-        .where(
-          (zekr) =>
-      !zekr.isCustom && zekr.category == selectedCategory,
-    )
+        .where((zekr) => !zekr.isCustom && zekr.category == selectedCategory)
         .toList();
   }
 
@@ -109,13 +110,10 @@ class _AzkarScreenState extends State<AzkarScreen>
     _categoryController.forward(from: 0);
   }
 
-  Future<void> _showAzkarForm(
-      BuildContext context, {
-        AzkarEntity? zekr,
-      }) async {
+  Future<void> _showAzkarForm(BuildContext context, {AzkarEntity? zekr}) async {
     final result = await showDialog<AzkarEntity>(
       context: context,
-      builder: (_) => _AzkarFormDialog(zekr: zekr),
+      builder: (_) => AzkarFormDialog(zekr: zekr),
     );
 
     if (!mounted || result == null) return;
@@ -227,9 +225,7 @@ class _AzkarScreenState extends State<AzkarScreen>
                 decoration: BoxDecoration(
                   color: const Color(0xFFA88746).withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFD6BE83),
-                  ),
+                  border: Border.all(color: const Color(0xFFD6BE83)),
                 ),
                 child: const Icon(
                   Icons.auto_awesome_rounded,
@@ -240,10 +236,7 @@ class _AzkarScreenState extends State<AzkarScreen>
               const SizedBox(width: 10),
               const Text(
                 'الأذكار',
-                style: TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
               ),
             ],
           ),
@@ -279,11 +272,14 @@ class _AzkarScreenState extends State<AzkarScreen>
   ) {
     if (state.status == AzkarStatus.initial ||
         state.status == AzkarStatus.loading) {
-      return _buildLoading(colors);
+      return AzkarLoadingView(colors: colors);
     }
 
     if (state.status == AzkarStatus.failure) {
-      return _buildError(colors);
+      return AzkarErrorView(
+        colors: colors,
+        onRetry: () => context.read<AzkarCubit>().loadAzkar(),
+      );
     }
 
     final azkar = filteredAzkar(state.azkar);
@@ -301,7 +297,10 @@ class _AzkarScreenState extends State<AzkarScreen>
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _headerSlide,
-                    child: _buildHeader(context, colors),
+                    child: AzkarHeader(
+                      categoryTitle: getCategoryTitle(),
+                      categoryDescription: getCategoryDescription(),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -309,7 +308,10 @@ class _AzkarScreenState extends State<AzkarScreen>
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _chipsSlide,
-                    child: _buildCategories(colors),
+                    child: AzkarCategories(
+                      selectedCategory: selectedCategory,
+                      onCategoryChanged: changeCategory,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -362,580 +364,21 @@ class _AzkarScreenState extends State<AzkarScreen>
           ),
         ),
         if (azkar.isEmpty)
-          SliverFillRemaining(hasScrollBody: false, child: _buildEmpty(colors))
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: AzkarEmptyView(colors: colors),
+          )
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-            sliver: _buildAzkarSliver(azkar),
+            sliver: AzkarList(
+              azkar: azkar,
+              selectedCategory: selectedCategory,
+              onEdit: (zekr) => _showAzkarForm(context, zekr: zekr),
+              onDelete: (zekr) => _confirmDeleteAzkar(context, zekr),
+            ),
           ),
       ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, ColorScheme colors) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
-
-    final paper = isDark
-        ? const Color(0xFF252017)
-        : const Color(0xFFF7F1DF);
-
-    final innerPaper = isDark
-        ? const Color(0xFF201B13)
-        : const Color(0xFFFFFCF4);
-
-    final gold = isDark
-        ? const Color(0xFFD6BE83)
-        : const Color(0xFFA88746);
-
-    final lightGold = isDark
-        ? const Color(0xFF806B43)
-        : const Color(0xFFD6BE83);
-
-    final textColor = isDark
-        ? const Color(0xFFF2E8D2)
-        : const Color(0xFF493A25);
-
-    final mutedColor = isDark
-        ? const Color(0xFFC1B18F)
-        : const Color(0xFF786548);
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: Container(
-        key: ValueKey(selectedCategory),
-        padding: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: paper,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: gold, width: 1.4),
-          boxShadow: [
-            BoxShadow(
-              color: gold.withValues(alpha: 0.10),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: innerPaper,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: lightGold),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                top: 5,
-                right: 5,
-                child: Icon(
-                  Icons.auto_awesome,
-                  size: 17,
-                  color: gold.withValues(alpha: 0.55),
-                ),
-              ),
-              Positioned(
-                top: 5,
-                left: 5,
-                child: Icon(
-                  Icons.auto_awesome,
-                  size: 17,
-                  color: gold.withValues(alpha: 0.55),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(17, 20, 17, 18),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 55,
-                      height: 55,
-                      decoration: BoxDecoration(
-                        color: gold.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: lightGold),
-                      ),
-                      child: Icon(
-                        Icons.favorite_rounded,
-                        size: 27,
-                        color: gold,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'ذكر الله حياة للقلوب',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: mutedColor,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            getCategoryTitle(),
-                            style: TextStyle(
-                              fontSize: 21,
-                              fontWeight: FontWeight.w900,
-                              color: textColor,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            getCategoryDescription(),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: mutedColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.auto_awesome_rounded,
-                      size: 20,
-                      color: gold.withValues(alpha: 0.65),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  Widget _buildCategories(ColorScheme colors) {
-    return SizedBox(
-      height: 45,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          _buildCategoryChip(
-            title: 'أذكار الصباح',
-            value: 'morning',
-            isSelected: selectedCategory == 'morning',
-            onTap: () => changeCategory('morning'),
-          ),
-          _buildCategoryChip(
-            title: 'أذكار المساء',
-            value: 'evening',
-            isSelected: selectedCategory == 'evening',
-            onTap: () => changeCategory('evening'),
-          ),
-          _buildCategoryChip(
-            title: 'أذكار النوم',
-            value: 'sleep',
-            isSelected: selectedCategory == 'sleep',
-            onTap: () => changeCategory('sleep'),
-          ),
-          _buildCategoryChip(
-            title: 'أذكاري',
-            value: 'custom',
-            isSelected: selectedCategory == 'custom',
-            onTap: () => changeCategory('custom'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAzkarSliver(List<AzkarEntity> azkar) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final zekr = azkar[index];
-
-        final double startDelay = (index * 0.035).clamp(0.0, 0.45);
-
-        return TweenAnimationBuilder<double>(
-          key: ValueKey('${selectedCategory}_${zekr.id}'),
-          tween: Tween<double>(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, child) {
-            final adjustedValue = ((value - startDelay) / (1 - startDelay))
-                .clamp(0.0, 1.0);
-
-            return Opacity(
-              opacity: adjustedValue,
-              child: Transform.translate(
-                offset: Offset(0, 16 * (1 - adjustedValue)),
-                child: child,
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: ZikrCard(
-              key: ValueKey(zekr.id),
-              zekr: zekr,
-              onEdit: () => _showAzkarForm(context, zekr: zekr),
-              onDelete: () => _confirmDeleteAzkar(context, zekr),
-            ),
-          ),
-        );
-      }, childCount: azkar.length),
-    );
-  }
-
-  Widget _buildCategoryChip({
-    required String title,
-    required String value,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
-
-    const gold = Color(0xFFA88746);
-    const lightGold = Color(0xFFD6BE83);
-
-    final selectedColor = isDark
-        ? const Color(0xFFD6BE83)
-        : gold;
-
-    final unselectedColor = isDark
-        ? const Color(0xFF252017)
-        : const Color(0xFFFFFCF4);
-
-    final textColor = isSelected
-        ? (isDark ? const Color(0xFF201B13) : Colors.white)
-        : (isDark
-        ? const Color(0xFFF2E8D2)
-        : const Color(0xFF786548));
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        decoration: BoxDecoration(
-          color: isSelected ? selectedColor : unselectedColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? selectedColor : lightGold,
-            width: 1,
-          ),
-          boxShadow: isSelected
-              ? [
-            BoxShadow(
-              color: gold.withValues(alpha: 0.16),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ]
-              : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 10,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    value == 'morning'
-                        ? Icons.wb_sunny_outlined
-                        : value == 'evening'
-                        ? Icons.nights_stay_outlined
-                        : value == 'sleep'
-                        ? Icons.bedtime_outlined
-                        : Icons.bookmark_outline_rounded,
-                    size: 17,
-                    color: textColor,
-                  ),
-                  const SizedBox(width: 7),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: textColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoading(ColorScheme colors) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.09),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                color: colors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'جاري تجهيز الأذكار...',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: colors.onSurface,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'لحظات ونبدأ معك',
-            style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildError(ColorScheme colors) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 82,
-              height: 82,
-              decoration: BoxDecoration(
-                color: colors.error.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                size: 40,
-                color: colors.error,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'تعذر تحميل الأذكار',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
-                color: colors.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'حدثت مشكلة أثناء قراءة بيانات الأذكار.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                height: 1.5,
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () => context.read<AzkarCubit>().loadAzkar(),
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmpty(ColorScheme colors) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: colors.onSurface.withValues(alpha: 0.06),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.auto_awesome_outlined,
-                size: 38,
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'لا توجد أذكار هنا',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: colors.onSurface,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'جرّب قسمًا آخر أو أضف ذكرًا جديدًا.',
-              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-}
-class _AzkarFormDialog extends StatefulWidget {
-  final AzkarEntity? zekr;
-
-  const _AzkarFormDialog({this.zekr});
-
-  @override
-  State<_AzkarFormDialog> createState() => _AzkarFormDialogState();
-}
-
-class _AzkarFormDialogState extends State<_AzkarFormDialog> {
-  final _formKey = GlobalKey<FormState>();
-
-  late final TextEditingController _titleController;
-  late final TextEditingController _textController;
-  late final TextEditingController _countController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _titleController = TextEditingController(
-      text: widget.zekr?.title ?? '',
-    );
-
-    _textController = TextEditingController(
-      text: widget.zekr?.text ?? '',
-    );
-
-    _countController = TextEditingController(
-      text: widget.zekr?.count.toString() ?? '',
-    );
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _textController.dispose();
-    _countController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        widget.zekr == null ? 'إضافة ذكر جديد' : 'تعديل الذكر',
-        textAlign: TextAlign.center,
-      ),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(
-                  labelText: 'عنوان الذكر',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'اكتب عنوان الذكر';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _textController,
-                textDirection: TextDirection.rtl,
-                maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'نص الذكر',
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'اكتب نص الذكر';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _countController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'عدد التكرار',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  final count = int.tryParse(value ?? '');
-
-                  if (count == null || count <= 0) {
-                    return 'أدخل عددًا صحيحًا أكبر من صفر';
-                  }
-
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء'),
-        ),
-        FilledButton(
-          onPressed: _save,
-          child: Text(widget.zekr == null ? 'إضافة' : 'حفظ'),
-        ),
-      ],
-    );
-  }
-
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
-
-    Navigator.pop(
-      context,
-      AzkarEntity(
-        id: widget.zekr?.id ?? 0,
-        category: 'custom',
-        title: _titleController.text.trim(),
-        text: _textController.text.trim(),
-        count: int.parse(_countController.text.trim()),
-        isCustom: true,
-      ),
     );
   }
 }

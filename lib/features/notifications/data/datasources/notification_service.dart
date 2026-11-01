@@ -83,6 +83,12 @@ class NotificationService {
         playSound: true,
         sound: RawResourceAndroidNotificationSound('zad_notification'),
         enableVibration: true,
+        icon: 'ic_notification',
+        color: Color(0xFFA88746),
+        styleInformation: BigTextStyleInformation(
+          'حيّ على الصلاة',
+          summaryText: 'ZAD | رفيقك إلى الطمأنينة',
+        ),
       );
 
   static const int _salawatIdPrefix = 301;
@@ -380,11 +386,17 @@ class NotificationService {
         'zad_salawat_channel_v1',
         'Salawat Notifications',
         channelDescription: 'Daily salawat reminders',
-        importance: Importance.max,
+        importance: Importance.high,
         priority: Priority.high,
         playSound: true,
         sound: RawResourceAndroidNotificationSound('zad_salat_alanabi'),
         enableVibration: true,
+        icon: 'ic_notification',
+        color: Color(0xFFA88746),
+        styleInformation: BigTextStyleInformation(
+          'اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️',
+          summaryText: 'ZAD | رفيقك إلى الطمأنينة',
+        ),
       ),
     );
 
@@ -540,23 +552,13 @@ class NotificationService {
   }
 
   static Future<void> testNotification() async {
-    const details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        'zad_test_channel',
-        'Test Notifications',
-        channelDescription: 'Test notification channel',
-        importance: Importance.max,
-        priority: Priority.high,
-        playSound: true,
-        enableVibration: true,
-      ),
-    );
-
     await _notifications.show(
       id: 999,
-      title: 'ZAD ✅',
-      body: 'الإشعارات شغالة تمام.',
-      notificationDetails: details,
+      title: 'حان وقت صلاة الظهر 🕌',
+      body: 'حيّ على الصلاة',
+      notificationDetails: const NotificationDetails(
+        android: _prayerAndroidDetails,
+      ),
       payload: 'prayer',
     );
   }

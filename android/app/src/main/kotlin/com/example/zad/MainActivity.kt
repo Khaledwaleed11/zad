@@ -74,6 +74,7 @@ class MainActivity : FlutterActivity() {
                     }
                 }
 
+
                 "scheduleAdhanAlarms" -> {
                     try {
                         val alarms =
@@ -82,9 +83,7 @@ class MainActivity : FlutterActivity() {
                                     "Alarms list is missing"
                                 )
 
-                        AdhanAlarmScheduler.cancelAll(applicationContext)
-
-                        for (alarm in alarms) {
+                        val adhanAlarms = alarms.map { alarm ->
                             val alarmId = (alarm["id"] as? Number)?.toInt()
                                 ?: throw IllegalArgumentException("Invalid alarm ID")
 
@@ -98,16 +97,21 @@ class MainActivity : FlutterActivity() {
                             val prayerName =
                                 alarm["prayerName"] as? String ?: "الصلاة"
 
-                            AdhanAlarmScheduler.schedule(
-                                context = applicationContext,
-                                alarmId = alarmId,
+                            AdhanAlarm(
+                                id = alarmId,
                                 triggerAtMillis = triggerAtMillis,
                                 audioPath = audioPath,
                                 prayerName = prayerName
                             )
                         }
 
+                        AdhanAlarmScheduler.scheduleWindow(
+                            context = applicationContext,
+                            alarms = adhanAlarms
+                        )
+
                         result.success(true)
+
                     } catch (exception: Exception) {
                         result.error(
                             "ADHAN_SCHEDULE_ERROR",
@@ -116,6 +120,7 @@ class MainActivity : FlutterActivity() {
                         )
                     }
                 }
+
 
                 "cancelAdhanAlarms" -> {
                     try {

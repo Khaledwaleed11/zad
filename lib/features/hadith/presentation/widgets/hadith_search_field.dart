@@ -1,14 +1,15 @@
-
 import 'package:flutter/material.dart';
 
 class HadithSearchField extends StatelessWidget {
   final TextEditingController controller;
+  final FocusNode focusNode;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
 
   const HadithSearchField({
     super.key,
     required this.controller,
+    required this.focusNode,
     required this.onChanged,
     required this.onClear,
   });
@@ -35,6 +36,7 @@ class HadithSearchField extends StatelessWidget {
 
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       textDirection: TextDirection.rtl,
       textInputAction: TextInputAction.search,
       onChanged: onChanged,
@@ -46,43 +48,27 @@ class HadithSearchField extends StatelessWidget {
       cursorColor: goldColor,
       decoration: InputDecoration(
         hintText: 'ابحث عن حديث...',
-        hintStyle: TextStyle(
-          color: mutedColor,
-          fontSize: 14,
-        ),
-        prefixIcon: Icon(
-          Icons.search_rounded,
-          color: goldColor,
-        ),
+        hintStyle: TextStyle(color: mutedColor, fontSize: 14),
+        prefixIcon: Icon(Icons.search_rounded, color: goldColor),
         suffixIcon: controller.text.isEmpty
             ? null
             : IconButton(
-          onPressed: onClear,
-          icon: Icon(
-            Icons.close_rounded,
-            color: mutedColor,
-          ),
-        ),
+                onPressed: onClear,
+                icon: Icon(Icons.close_rounded, color: mutedColor),
+              ),
         filled: true,
         fillColor: backgroundColor,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: goldColor.withValues(alpha: 0.35),
-          ),
+          borderSide: BorderSide(color: goldColor.withValues(alpha: 0.35)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: goldColor,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: goldColor, width: 1.5),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: goldColor.withValues(alpha: 0.35),
-          ),
+          borderSide: BorderSide(color: goldColor.withValues(alpha: 0.35)),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

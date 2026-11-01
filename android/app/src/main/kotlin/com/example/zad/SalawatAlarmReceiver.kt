@@ -7,7 +7,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
@@ -18,6 +18,13 @@ class SalawatAlarmReceiver : BroadcastReceiver() {
     companion object {
         private const val CHANNEL_ID = "zad_salawat_channel_v1"
         private const val NOTIFICATION_ID = 301
+
+        private const val NOTIFICATION_COLOR = "#A88746"
+        private const val NOTIFICATION_SUMMARY =
+            "ZAD | رفيقك إلى الطمأنينة"
+
+        private const val NOTIFICATION_BODY =
+            "اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️"
     }
 
     override fun onReceive(context: Context, intent: Intent?) {
@@ -43,19 +50,16 @@ class SalawatAlarmReceiver : BroadcastReceiver() {
                     PendingIntent.FLAG_IMMUTABLE
         )
 
-        val appIcon = BitmapFactory.decodeResource(
-            context.resources,
-            R.mipmap.ic_launcher
-        )
-
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setLargeIcon(appIcon)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(Color.parseColor(NOTIFICATION_COLOR))
             .setContentTitle("صلِّ على النبي ﷺ")
-            .setContentText("اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️")
+            .setContentText(NOTIFICATION_BODY)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText("اللهم صلِّ وسلم على نبينا محمد ﷺ ❤️")
+                    .setBigContentTitle("صلِّ على النبي ﷺ")
+                    .bigText(NOTIFICATION_BODY)
+                    .setSummaryText(NOTIFICATION_SUMMARY)
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

@@ -1,10 +1,7 @@
-
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zad/core/constants/app_constants.dart';
 
 import '../../../../../../../core/dependency_injection/injection_container.dart';
 import '../../../../../../../core/theme/cubit/theme_cubit.dart';
@@ -14,6 +11,14 @@ import '../../../notifications/data/datasources/notification_service.dart';
 import '../cubit/settings_cubit.dart';
 import '../cubit/settings_state.dart';
 import '../widgets/setting_tile.dart';
+import '../widgets/settings_about_dialog.dart';
+import '../widgets/settings_app_bar.dart';
+import '../widgets/settings_footer.dart';
+import '../widgets/settings_group.dart';
+import '../widgets/settings_hero_header.dart';
+import '../widgets/settings_salawat_countdown.dart';
+import '../widgets/settings_section_header.dart';
+import '../widgets/settings_version_badge.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -47,8 +52,8 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
 
   Timer? _countdownTimer;
   bool _isRefreshingSalawatTime = false;
-  bool get _isDark =>
-      Theme.of(context).brightness == Brightness.dark;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
   Color get _paper =>
       _isDark ? const Color(0xFF252017) : const Color(0xFFF7F1DF);
@@ -94,11 +99,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
       0.45,
     );
 
-    _prayerAnimation = _createSlideAnimation(
-      const Offset(0, 0.08),
-      0.30,
-      0.60,
-    );
+    _prayerAnimation = _createSlideAnimation(const Offset(0, 0.08), 0.30, 0.60);
 
     _applicationAnimation = _createSlideAnimation(
       const Offset(0, 0.08),
@@ -106,11 +107,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
       0.75,
     );
 
-    _footerAnimation = _createSlideAnimation(
-      const Offset(0, 0.08),
-      0.65,
-      1.00,
-    );
+    _footerAnimation = _createSlideAnimation(const Offset(0, 0.08), 0.65, 1.00);
 
     _pageController.forward();
 
@@ -118,26 +115,19 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
 
     _countdownTimer = Timer.periodic(
       const Duration(seconds: 1),
-          (_) => _refreshSalawatCountdown(),
+      (_) => _refreshSalawatCountdown(),
     );
   }
 
   Animation<Offset> _createSlideAnimation(
-      Offset begin,
-      double start,
-      double end,
-      ) {
-    return Tween<Offset>(
-      begin: begin,
-      end: Offset.zero,
-    ).animate(
+    Offset begin,
+    double start,
+    double end,
+  ) {
+    return Tween<Offset>(begin: begin, end: Offset.zero).animate(
       CurvedAnimation(
         parent: _pageController,
-        curve: Interval(
-          start,
-          end,
-          curve: Curves.easeOutCubic,
-        ),
+        curve: Interval(start, end, curve: Curves.easeOutCubic),
       ),
     );
   }
@@ -155,20 +145,16 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   }) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: slide,
-        child: child,
-      ),
+      child: SlideTransition(position: slide, child: child),
     );
   }
 
   void _openAudioLibrary() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const AudioLibraryScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const AudioLibraryScreen()));
   }
+
   Future<void> _refreshSalawatCountdown() async {
     if (_isRefreshingSalawatTime) return;
 
@@ -189,12 +175,15 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
-        final isLoading =
-            settingsState.status == SettingsStatus.loading;
+        final isLoading = settingsState.status == SettingsStatus.loading;
 
         return Scaffold(
           backgroundColor: _paper,
-          appBar: _buildAppBar(),
+          appBar: SettingsAppBar(
+            paper: _paper,
+            gold: _gold,
+            textColor: _textColor,
+          ),
           body: ListView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
@@ -258,21 +247,19 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                         _buildTile(
                           icon: Icons.notifications_active_outlined,
                           title: 'إشعارات الصلاة',
-                          subtitle:
-                          settingsState.prayerNotificationsEnabled
+                          subtitle: settingsState.prayerNotificationsEnabled
                               ? 'إشعارات أوقات الصلاة مفعلة'
                               : 'إشعارات أوقات الصلاة متوقفة',
                           trailing: Switch.adaptive(
-                            value: settingsState
-                                .prayerNotificationsEnabled,
+                            value: settingsState.prayerNotificationsEnabled,
                             activeTrackColor: _gold,
                             onChanged: isLoading
                                 ? null
                                 : (value) {
-                              context
-                                  .read<SettingsCubit>()
-                                  .togglePrayerNotifications(value);
-                            },
+                                    context
+                                        .read<SettingsCubit>()
+                                        .togglePrayerNotifications(value);
+                                  },
                           ),
                         ),
 
@@ -290,10 +277,10 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                             onChanged: isLoading
                                 ? null
                                 : (value) {
-                              context
-                                  .read<SettingsCubit>()
-                                  .toggleAdhan(value);
-                            },
+                                    context.read<SettingsCubit>().toggleAdhan(
+                                      value,
+                                    );
+                                  },
                           ),
                         ),
                       ],
@@ -321,21 +308,19 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                         _buildTile(
                           icon: Icons.notifications_none_rounded,
                           title: 'إشعارات الأذكار',
-                          subtitle:
-                          settingsState.azkarNotificationsEnabled
+                          subtitle: settingsState.azkarNotificationsEnabled
                               ? 'تذكيرات الأذكار اليومية مفعلة'
                               : 'تذكيرات الأذكار اليومية متوقفة',
                           trailing: Switch.adaptive(
-                            value: settingsState
-                                .azkarNotificationsEnabled,
+                            value: settingsState.azkarNotificationsEnabled,
                             activeTrackColor: _gold,
                             onChanged: isLoading
                                 ? null
                                 : (value) {
-                              context
-                                  .read<SettingsCubit>()
-                                  .toggleAzkarNotifications(value);
-                            },
+                                    context
+                                        .read<SettingsCubit>()
+                                        .toggleAzkarNotifications(value);
+                                  },
                           ),
                         ),
 
@@ -344,27 +329,25 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                         _buildTile(
                           icon: Icons.favorite_rounded,
                           title: 'الصلاة على النبي ﷺ',
-                          subtitle:
-                          settingsState.salawatNotificationsEnabled
+                          subtitle: settingsState.salawatNotificationsEnabled
                               ? 'تذكيرات الصلاة على النبي مفعلة'
                               : 'تذكيرات الصلاة على النبي متوقفة',
                           trailing: Switch.adaptive(
-                            value: settingsState
-                                .salawatNotificationsEnabled,
+                            value: settingsState.salawatNotificationsEnabled,
                             activeTrackColor: _gold,
                             onChanged: isLoading
                                 ? null
                                 : (value) async {
-                              await context
-                                  .read<SettingsCubit>()
-                                  .toggleSalawatNotifications(value);
+                                    await context
+                                        .read<SettingsCubit>()
+                                        .toggleSalawatNotifications(value);
 
-                              if (value) {
-                                await _refreshSalawatCountdown();
-                              } else if (mounted) {
-                                setState(() {});
-                              }
-                            },
+                                    if (value) {
+                                      await _refreshSalawatCountdown();
+                                    } else if (mounted) {
+                                      setState(() {});
+                                    }
+                                  },
                           ),
                         ),
 
@@ -415,10 +398,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
 
               const SizedBox(height: 32),
 
-              _animatedSection(
-                slide: _footerAnimation,
-                child: _buildFooter(),
-              ),
+              _animatedSection(slide: _footerAnimation, child: _buildFooter()),
             ],
           ),
         );
@@ -427,264 +407,18 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   }
 
   Widget _buildSalawatCountdown() {
-    final nextTime =
-    NotificationService.getNextSalawatNotificationTime();
-
-    if (nextTime == null) {
-      return const SizedBox.shrink();
-    }
-
-    final remaining = nextTime.difference(DateTime.now());
-    final isFinished = remaining.inSeconds <= 0;
-
-    final hours = remaining.inHours;
-    final minutes = remaining.inMinutes.remainder(60);
-    final seconds = remaining.inSeconds.remainder(60);
-
-    final time = hours > 0
-        ? '${hours.toString().padLeft(2, '0')}:'
-        '${minutes.toString().padLeft(2, '0')}:'
-        '${seconds.toString().padLeft(2, '0')}'
-        : '${minutes.toString().padLeft(2, '0')}:'
-        '${seconds.toString().padLeft(2, '0')}';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 11,
-      ),
-      decoration: BoxDecoration(
-        color: _gold.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: _gold.withValues(alpha: 0.25),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.schedule_rounded,
-            size: 19,
-            color: _gold,
-          ),
-
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Text(
-              isFinished
-                  ? 'حان موعد التذكير'
-                  : 'التذكير القادم بعد',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: _mutedColor,
-              ),
-            ),
-          ),
-
-          if (!isFinished)
-            Text(
-              time,
-              textDirection: TextDirection.ltr,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
-                color: _gold,
-                fontFeatures: const [
-                  FontFeature.tabularFigures(),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: _paper,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: true,
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildIconBox(Icons.settings_rounded, size: 38),
-          const SizedBox(width: 10),
-          Text(
-            'الإعدادات',
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w900,
-              color: _textColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIconBox(IconData icon, {double size = 42}) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: _gold.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: _gold.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Icon(
-        icon,
-        size: size * 0.52,
-        color: _gold,
-      ),
-    );
-  }
-
-  Widget _paperCard({
-    required Widget child,
-    EdgeInsetsGeometry padding = const EdgeInsets.all(16),
-    double radius = 20,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: _gold.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(radius + 3),
-        border: Border.all(
-          color: _gold.withValues(alpha: 0.75),
-        ),
-      ),
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          color: _innerPaper,
-          borderRadius: BorderRadius.circular(radius),
-          border: Border.all(
-            color: _lightGold.withValues(alpha: 0.55),
-            width: 0.8,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              right: 0,
-              child: _cornerDecoration(),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Transform.rotate(
-                angle: 1.5708,
-                child: _cornerDecoration(),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Transform.rotate(
-                angle: -1.5708,
-                child: _cornerDecoration(),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              child: Transform.rotate(
-                angle: 3.1416,
-                child: _cornerDecoration(),
-              ),
-            ),
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _cornerDecoration() {
-    return Icon(
-      Icons.auto_awesome_rounded,
-      size: 12,
-      color: _gold.withValues(alpha: 0.65),
+    return SettingsSalawatCountdown(
+      nextTime: NotificationService.getNextSalawatNotificationTime(),
+      gold: _gold,
+      mutedColor: _mutedColor,
     );
   }
 
   Widget _buildHeroHeader() {
-    return _paperCard(
-      radius: 23,
-      padding: const EdgeInsets.all(19),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _gold.withValues(alpha: 0.12),
-              border: Border.all(
-                color: _gold.withValues(alpha: 0.65),
-                width: 1.3,
-              ),
-            ),
-            child: Icon(
-              Icons.settings_rounded,
-              color: _gold,
-              size: 29,
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'خصّص تجربتك',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _mutedColor,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'إعدادات زاد',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: _textColor,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'كل شيء بالشكل الذي يناسبك',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: _gold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Icon(
-            Icons.auto_awesome_rounded,
-            size: 21,
-            color: _gold.withValues(alpha: 0.7),
-          ),
-        ],
-      ),
+    return SettingsHeroHeader(
+      gold: _gold,
+      mutedColor: _mutedColor,
+      textColor: _textColor,
     );
   }
 
@@ -693,50 +427,24 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
     required String title,
     required String subtitle,
   }) {
-    return Row(
-      children: [
-        _buildIconBox(icon, size: 40),
-        const SizedBox(width: 11),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  color: _textColor,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: _mutedColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return SettingsSectionHeader(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      gold: _gold,
+      textColor: _textColor,
+      mutedColor: _mutedColor,
     );
   }
 
-  Widget _buildSettingsGroup({
-    required List<Widget> children,
-  }) {
-    return _paperCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 12,
-      ),
+  Widget _buildSettingsGroup({required List<Widget> children}) {
+    return SettingsGroup(
+      gold: _gold,
+      innerPaper: _innerPaper,
+      lightGold: _lightGold,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       radius: 19,
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
@@ -771,10 +479,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
 
   Widget _buildGroupDivider() {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Divider(
         height: 1,
         thickness: 0.7,
@@ -786,8 +491,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   Widget _buildThemeTile() {
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
-        final isDarkMode =
-            state.themeMode == ThemeMode.dark;
+        final isDarkMode = state.themeMode == ThemeMode.dark;
 
         return _buildSettingsGroup(
           children: [
@@ -796,9 +500,7 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
                   ? Icons.dark_mode_rounded
                   : Icons.light_mode_rounded,
               title: 'الوضع الداكن',
-              subtitle: isDarkMode
-                  ? 'الوضع الداكن مفعل'
-                  : 'الوضع الفاتح مفعل',
+              subtitle: isDarkMode ? 'الوضع الداكن مفعل' : 'الوضع الفاتح مفعل',
               trailing: Switch.adaptive(
                 key: ValueKey('theme-switch-$isDarkMode'),
                 value: isDarkMode,
@@ -815,217 +517,25 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
   }
 
   Widget _buildArrow() {
-    return Icon(
-      Icons.chevron_right_rounded,
-      color: _gold,
-      size: 23,
-    );
+    return Icon(Icons.chevron_right_rounded, color: _gold, size: 23);
   }
 
   Widget _buildVersionBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 11,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: _gold.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: _gold.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Text(
-        '1.0.0',
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: _gold,
-        ),
-      ),
-    );
+    return SettingsVersionBadge(gold: _gold);
   }
 
   Widget _buildFooter() {
-    return Column(
-      children: [
-        Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            color: _gold.withValues(alpha: 0.12),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: _gold.withValues(alpha: 0.5),
-            ),
-          ),
-          child: Icon(
-            Icons.auto_awesome_rounded,
-            size: 27,
-            color: _gold,
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        Text(
-          AppConstants.appName,
-          style: TextStyle(
-            fontSize: 23,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 4,
-            color: _gold,
-          ),
-        ),
-
-        const SizedBox(height: 6),
-
-        Text(
-          'زادك في طريقك إلى الله',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: _mutedColor,
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        Container(
-          width: 55,
-          height: 3,
-          decoration: BoxDecoration(
-            color: _gold.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      ],
-    );
+    return SettingsFooter(gold: _gold, mutedColor: _mutedColor);
   }
 
   void _showAboutDialog(BuildContext context) {
-    showDialog(
+    SettingsAboutDialog.show(
       context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-          ),
-          child: _paperCard(
-            radius: 23,
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 62,
-                  height: 62,
-                  decoration: BoxDecoration(
-                    color: _gold.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _gold.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 30,
-                    color: _gold,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Text(
-                  'عن زاد',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: _textColor,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Text(
-                  'زاد هو تطبيق إسلامي يساعدك على متابعة القرآن الكريم والأذكار ومواقيت الصلاة واتجاه القبلة والسبحة في مكان واحد.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.7,
-                    color: _mutedColor,
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _gold.withValues(alpha: 0.09),
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: _gold.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.verified_outlined,
-                        size: 17,
-                        color: _gold,
-                      ),
-                      const SizedBox(width: 7),
-                      Text(
-                        'الإصدار 1.0.0',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: _textColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _gold,
-                      foregroundColor: _innerPaper,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 13,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
-                    },
-                    child: const Text(
-                      'إغلاق',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      gold: _gold,
+      innerPaper: _innerPaper,
+      lightGold: _lightGold,
+      textColor: _textColor,
+      mutedColor: _mutedColor,
     );
   }
 }

@@ -1,21 +1,22 @@
-
 import 'package:flutter/material.dart';
-import 'package:hijri/hijri_calendar.dart';
-import 'package:zad/features/azkar/presentation/screens/azkar_screen.dart';
 import 'package:zad/features/prayer_times/presentation/screens/prayer_times_screen.dart';
-import 'package:zad/features/qibla/presentation/screens/qibla_screen.dart';
-import 'package:zad/features/quran/presentation/screens/quran_screen.dart';
-import 'package:zad/features/sebha/presentation/screens/sebha_screen.dart';
 import 'package:zad/features/settings/presentation/screens/setting_screen.dart';
 
 import '../../../../core/dependency_injection/injection_container.dart';
-import '../../../notifications/data/datasources/notification_service.dart';
 import '../../../notifications/domain/usecases/initialize_notifications.dart';
 
 import '../widgets/daily_ayah_card.dart';
 import '../widgets/home_header.dart';
 import '../widgets/prayer_card.dart';
 import '../widgets/quick_action_card.dart';
+import '../widgets/home_date_card.dart';
+import '../widgets/home_section_title.dart';
+import '../widgets/home_motivational_card.dart';
+
+import '../../../azkar/presentation/screens/azkar_screen.dart';
+import '../../../qibla/presentation/screens/qibla_screen.dart';
+import '../../../quran/presentation/screens/quran_screen.dart';
+import '../../../sebha/presentation/screens/sebha_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -99,14 +100,9 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _initializeNotifications() async {
     try {
       await sl<InitializeNotifications>()();
-
-      await NotificationService.testAzkarNotification();
-
-      await NotificationService.debugPendingNotifications();
-
       debugPrint('ZAD: Notifications initialized successfully.');
     } catch (e) {
-      debugPrint('ZAD: Notification initialization failed: $e');
+      debugPrint('ZAD: Notifications initialization failed: $e');
     }
   }
 
@@ -123,7 +119,10 @@ class _HomeScreenState extends State<HomeScreen>
   }) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: SlideTransition(position: slide, child: child),
+      child: SlideTransition(
+        position: slide,
+        child: child,
+      ),
     );
   }
 
@@ -134,7 +133,6 @@ class _HomeScreenState extends State<HomeScreen>
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-
         backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
@@ -161,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 _animatedSection(
                   slide: _headerSlide,
-                  child: _buildDateCard(context),
+                  child: const HomeDateCard(),
                 ),
 
                 const SizedBox(height: 22),
@@ -186,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 _animatedSection(
                   slide: _prayerSlide,
-                  child: const _SectionTitle(
+                  child: const HomeSectionTitle(
                     title: 'مواقيت الصلاة',
                     subtitle: 'تابع صلاتك القادمة',
                     icon: Icons.access_time_rounded,
@@ -213,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 _animatedSection(
                   slide: _quickSlide,
-                  child: const _SectionTitle(
+                  child: const HomeSectionTitle(
                     title: 'استكشف زاد',
                     subtitle: 'عبادتك اليومية في مكان واحد',
                     icon: Icons.auto_awesome_rounded,
@@ -231,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 _animatedSection(
                   slide: _quickSlide,
-                  child: _buildMotivationalCard(context),
+                  child: const HomeMotivationalCard(),
                 ),
               ],
             ),
@@ -241,146 +239,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-
-  Widget _buildDateCard(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    final now = DateTime.now();
-    final formattedDate = '${now.day} / ${now.month} / ${now.year}';
-
-    final hijriDate = HijriCalendar.fromDate(now);
-
-    final hijriFormattedDate =
-        '${hijriDate.hDay} ${hijriDate.getLongMonthName()} ${hijriDate.hYear} هـ';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.65),
-          width: 1.1,
-        ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 10,
-        ),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.28),
-            width: 0.8,
-          ),
-        ),
-        child: Column(
-          children: [
-            // Gregorian Date
-            Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: colors.primary.withValues(alpha: 0.25),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.calendar_month_rounded,
-                    size: 17,
-                    color: colors.primary,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'التاريخ الميلادي',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  textDirection: TextDirection.ltr,
-                  formattedDate,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: colors.onSurface,
-                  ),
-                ),
-              ],
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Divider(
-                height: 1,
-                color: colors.primary.withValues(alpha: 0.15),
-              ),
-            ),
-
-            // Hijri Date
-            Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: colors.primary.withValues(alpha: 0.25),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.nightlight_round,
-                    size: 17,
-                    color: colors.primary,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'التاريخ الهجري',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-                const Spacer(),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      textDirection: TextDirection.ltr,
-                      hijriFormattedDate,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: colors.onSurface,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   Widget _buildQuickActions(BuildContext context) {
     return Column(
       children: [
@@ -393,7 +251,9 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const QuranScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const QuranScreen(),
+                  ),
                 );
               },
             ),
@@ -405,7 +265,9 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AzkarScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const AzkarScreen(),
+                  ),
                 );
               },
             ),
@@ -421,7 +283,9 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const QiblaScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const QiblaScreen(),
+                  ),
                 );
               },
             ),
@@ -433,153 +297,11 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const SebhaScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const SebhaScreen(),
+                  ),
                 );
               },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-
-  Widget _buildMotivationalCard(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(21),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.65),
-          width: 1.1,
-        ),
-      ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 15,
-          vertical: 15,
-        ),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.28),
-            width: 0.8,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 43,
-              height: 43,
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.11),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: colors.primary.withValues(alpha: 0.35),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.favorite_rounded,
-                color: colors.primary,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    textAlign: TextAlign.start,
-                    'لا تنسَ وردك اليوم',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: colors.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    textAlign: TextAlign.start,
-                    'خطوة صغيرة اليوم تصنع أثرًا كبيرًا.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      height: 1.5,
-                      fontWeight: FontWeight.w500,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.auto_awesome,
-              size: 17,
-              color: colors.primary.withValues(alpha: 0.7),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-
-  const _SectionTitle({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: colors.primary.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, size: 19, color: colors.primary),
-        ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              textAlign: TextAlign.start,
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                color: colors.onSurface,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              textAlign: TextAlign.start,
-              subtitle,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: colors.onSurfaceVariant,
-              ),
             ),
           ],
         ),

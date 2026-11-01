@@ -8,6 +8,8 @@ import 'schedule_salawat_notifications.dart';
 import 'cancel_salawat_notifications.dart';
 
 class InitializeNotifications {
+  static Future<void>? _initializationFuture;
+
   final GetNotificationSettings getNotificationSettings;
   final SchedulePrayerNotifications schedulePrayerNotifications;
   final CancelPrayerNotifications cancelPrayerNotifications;
@@ -26,11 +28,18 @@ class InitializeNotifications {
     required this.cancelSalawatNotifications,
   });
 
-  Future<void> call() async {
+  Future<void> call() {
+    return _initializationFuture ??= _initialize().catchError(
+          (Object error, StackTrace stackTrace) {
+        _initializationFuture = null;
+        Error.throwWithStackTrace(error, stackTrace);
+      },
+    );
+  }
+
+  Future<void> _initialize() async {
     final settings = await getNotificationSettings();
 
-    // Prayer notifications and Adhan are managed independently
-    // inside PrayerService.
     await schedulePrayerNotifications();
 
     if (settings.azkarNotificationsEnabled) {

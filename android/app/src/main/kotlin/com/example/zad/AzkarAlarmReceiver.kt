@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
@@ -19,6 +20,9 @@ class AzkarAlarmReceiver : BroadcastReceiver() {
     companion object {
         private const val CHANNEL_ID = "zad_azkar_custom_v2"
         private const val TAG = "AzkarReceiver"
+        private const val NOTIFICATION_COLOR = "#A88746"
+        private const val NOTIFICATION_SUMMARY =
+            "ZAD | رفيقك إلى الطمأنينة"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -71,12 +75,15 @@ class AzkarAlarmReceiver : BroadcastReceiver() {
                 context,
                 CHANNEL_ID
             )
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setColor(Color.parseColor(NOTIFICATION_COLOR))
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(
                     NotificationCompat.BigTextStyle()
+                        .setBigContentTitle(title)
                         .bigText(body)
+                        .setSummaryText(NOTIFICATION_SUMMARY)
                 )
                 .setContentIntent(contentPendingIntent)
                 .setAutoCancel(true)

@@ -43,6 +43,7 @@ class PrayerService {
 
   Future<void> scheduleUpcomingNotifications() async {
     final settingsBox = await Hive.openBox(StorageConstants.settingsBox);
+
     final prayerNotificationsEnabled =
     settingsBox.get('prayerNotificationsEnabled', defaultValue: true)
     as bool;
@@ -70,7 +71,10 @@ class PrayerService {
       year: nextMonthDate.year,
     );
 
-    // Keep the existing prayer notification scheduling independent.
+    // Cancel old Adhan alarms before scheduling prayer notifications.
+    // This prevents exceeding Android's concurrent alarm limit.
+    await _cancelAdhanAlarms();
+
     if (prayerNotificationsEnabled) {
       await NotificationService.schedulePrayerCalendar(
         currentMonth,
@@ -80,11 +84,9 @@ class PrayerService {
       await NotificationService.cancelPrayerNotifications();
     }
 
-    // Schedule full Adhan playback independently.
+    // Schedule Adhan alarms independently.
     if (adhanEnabled) {
       await _scheduleAdhanAlarms(currentMonth, nextMonth);
-    } else {
-      await _cancelAdhanAlarms();
     }
   }
 

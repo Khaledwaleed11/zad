@@ -6,89 +6,122 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
+
+data class AdhanAlarm(
+    val id: Int,
+    val triggerAtMillis: Long,
+    val audioPath: String,
+    val prayerName: String
+)
 
 object AdhanAlarmScheduler {
 
     private const val PREFS_NAME = "zad_adhan_alarms"
     private const val ALARMS_KEY = "scheduled_alarms"
 
-    fun schedule(
+    // Keep only 35 Adhan alarms active in Android at a time.
+    private const val MAX_ACTIVE_ALARMS = 35
+
+    private const val TAG = "AdhanAlarmScheduler"
+
+    /**
+     * Replaces the complete upcoming Adhan schedule.
+     * All future alarms are stored, but only the first 35 are activated.
+     */
+    fun scheduleWindow(
         context: Context,
-        alarmId: Int,
-        triggerAtMillis: Long,
-        audioPath: String,
-        prayerName: String
+        alarms: List<AdhanAlarm>
     ) {
-        require(audioPath.isNotBlank()) {
-            "Adhan audio path is missing"
-        }
+        cancelAll(context)
 
-        require(triggerAtMillis > System.currentTimeMillis()) {
-            "Adhan alarm time must be in the future"
-        }
+        val futureAlarms = alarms
+            .filter {
+                it.triggerAtMillis > System.currentTimeMillis() &&
+                        it.audioPath.isNotBlank()
+            }
+            .distinctBy { it.id }
+            .sortedBy { it.triggerAtMillis }
 
-        val alarmManager = context.getSystemService(
-            Context.ALARM_SERVICE
-        ) as AlarmManager
+        val storedAlarms = JSONArray()
 
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            !alarmManager.canScheduleExactAlarms()
-        ) {
-            throw SecurityException(
-                "Exact alarm permission is not granted"
+        futureAlarms.forEach { alarm ->
+            storedAlarms.put(
+                JSONObject().apply {
+                    put("id", alarm.id)
+                    put("time", alarm.triggerAtMillis)
+                    put("audioPath", alarm.audioPath)
+                    put("prayerName", alarm.prayerName)
+                    put("active", false)
+                }
             )
         }
 
-        val pendingIntent = createPendingIntent(
-            context = context,
-            alarmId = alarmId,
-            audioPath = audioPath,
-            prayerName = prayerName
-        )
+        saveAlarms(context, storedAlarms)
 
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            triggerAtMillis,
-            pendingIntent
-        )
+        scheduleNextBatch(context)
 
-        saveAlarm(
-            context = context,
-            alarmId = alarmId,
-            triggerAtMillis = triggerAtMillis,
-            audioPath = audioPath,
-            prayerName = prayerName
+        Log.d(
+            TAG,
+            "Stored ${futureAlarms.size} alarms. Active limit: $MAX_ACTIVE_ALARMS"
         )
     }
 
-    fun cancel(context: Context, alarmId: Int) {
-        val alarmManager = context.getSystemService(
-            Context.ALARM_SERVICE
-        ) as AlarmManager
-
-        val pendingIntent = createPendingIntent(
-            context = context,
-            alarmId = alarmId,
-            audioPath = "",
-            prayerName = ""
-        )
-
-        alarmManager.cancel(pendingIntent)
-        pendingIntent.cancel()
-
-        removeSavedAlarm(context, alarmId)
-    }
-
-    fun cancelAll(context: Context) {
-        val prefs = context.getSharedPreferences(
-            PREFS_NAME,
-            Context.MODE_PRIVATE
-        )
-
+    /**
+     * Called when an Adhan alarm is triggered.
+     * Removes the fired alarm and activates the next pending alarm.
+     */
+    fun onAlarmTriggered(context: Context, alarmId: Int) {
         val alarms = readSavedAlarms(context)
+        val updated = JSONArray()
+
+        for (index in 0 until alarms.length()) {
+            val alarm = alarms.optJSONObject(index) ?: continue
+
+            if (alarm.optInt("id") != alarmId) {
+                updated.put(alarm)
+            }
+        }
+
+        saveAlarms(context, updated)
+
+        scheduleNextBatch(context)
+
+        Log.d(TAG, "Processed alarm $alarmId")
+    }
+
+    /**
+     * Restores the active alarm window after device restart.
+     */
+    fun rescheduleSavedAlarms(context: Context) {
+        val alarms = readSavedAlarms(context)
+        val now = System.currentTimeMillis()
+        val updated = JSONArray()
+
+        for (index in 0 until alarms.length()) {
+            val alarm = alarms.optJSONObject(index) ?: continue
+
+            if (alarm.optLong("time", 0L) > now) {
+                alarm.put("active", false)
+                updated.put(alarm)
+            }
+        }
+
+        saveAlarms(context, updated)
+
+        scheduleNextBatch(context)
+
+        Log.d(TAG, "Saved Adhan alarms restored")
+    }
+
+    /**
+     * Cancels every currently scheduled Adhan alarm and clears the queue.
+     */
+    fun cancelAll(context: Context) {
+        val alarms = readSavedAlarms(context)
+
         val alarmManager = context.getSystemService(
             Context.ALARM_SERVICE
         ) as AlarmManager
@@ -101,54 +134,138 @@ object AdhanAlarmScheduler {
 
             val pendingIntent = createPendingIntent(
                 context = context,
-                alarmId = alarmId,
-                audioPath = "",
-                prayerName = ""
+                alarmId = alarmId
             )
 
             alarmManager.cancel(pendingIntent)
             pendingIntent.cancel()
         }
 
-        prefs.edit().remove(ALARMS_KEY).apply()
+        context.getSharedPreferences(
+            PREFS_NAME,
+            Context.MODE_PRIVATE
+        ).edit()
+            .remove(ALARMS_KEY)
+            .apply()
     }
 
-    fun rescheduleSavedAlarms(context: Context) {
+    /**
+     * Activates the earliest pending alarms until the active limit is reached.
+     */
+    private fun scheduleNextBatch(context: Context) {
         val alarms = readSavedAlarms(context)
+        val now = System.currentTimeMillis()
+
+        val activeCount = countActiveAlarms(alarms)
+
+        var availableSlots = MAX_ACTIVE_ALARMS - activeCount
+
+        if (availableSlots <= 0) return
+
+        val alarmManager = context.getSystemService(
+            Context.ALARM_SERVICE
+        ) as AlarmManager
+
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            !alarmManager.canScheduleExactAlarms()
+        ) {
+            Log.w(TAG, "Exact alarm permission is not granted")
+            return
+        }
+
+        val updated = JSONArray()
+
+        val pendingAlarms = mutableListOf<JSONObject>()
 
         for (index in 0 until alarms.length()) {
             val alarm = alarms.optJSONObject(index) ?: continue
+
+            if (alarm.optLong("time", 0L) <= now) {
+                continue
+            }
+
+            updated.put(alarm)
+
+            if (!alarm.optBoolean("active", false)) {
+                pendingAlarms.add(alarm)
+            }
+        }
+
+        pendingAlarms.sortBy { it.optLong("time", 0L) }
+
+        for (alarm in pendingAlarms) {
+            if (availableSlots <= 0) break
 
             val alarmId = alarm.optInt("id", -1)
             val triggerAtMillis = alarm.optLong("time", 0L)
             val audioPath = alarm.optString("audioPath")
             val prayerName = alarm.optString("prayerName", "الصلاة")
 
-            if (alarmId < 0 || triggerAtMillis <= System.currentTimeMillis()) {
+            if (
+                alarmId < 0 ||
+                triggerAtMillis <= now ||
+                audioPath.isBlank()
+            ) {
                 continue
             }
 
-            if (audioPath.isBlank()) continue
-
             try {
-                schedule(
+                val pendingIntent = createPendingIntent(
                     context = context,
                     alarmId = alarmId,
-                    triggerAtMillis = triggerAtMillis,
                     audioPath = audioPath,
                     prayerName = prayerName
                 )
-            } catch (_: Exception) {
-                // Keep other alarms scheduled if one alarm fails.
+
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
+                    pendingIntent
+                )
+
+                alarm.put("active", true)
+                availableSlots--
+
+                Log.d(TAG, "Activated Adhan alarm: $alarmId")
+            } catch (exception: Exception) {
+                Log.e(
+                    TAG,
+                    "Failed to activate Adhan alarm $alarmId",
+                    exception
+                )
             }
         }
+
+        saveAlarms(context, updated)
+
+        Log.d(
+            TAG,
+            "Active alarms: ${countActiveAlarms(updated)}"
+        )
     }
+
+    private fun countActiveAlarms(alarms: JSONArray): Int {
+        var count = 0
+
+        for (index in 0 until alarms.length()) {
+            val alarm = alarms.optJSONObject(index) ?: continue
+
+            if (alarm.optBoolean("active", false)) {
+                count++
+            }
+        }
+
+        return count
+    }
+
+    private const val EXTRA_ALARM_ID = "adhan_alarm_id"
 
     private fun createPendingIntent(
         context: Context,
         alarmId: Int,
-        audioPath: String,
-        prayerName: String
+        audioPath: String = "",
+        prayerName: String = ""
     ): PendingIntent {
         val intent = Intent(
             context,
@@ -157,6 +274,7 @@ object AdhanAlarmScheduler {
             action = AdhanAlarmReceiver.ACTION_PLAY_ADHAN
             putExtra(AdhanAlarmReceiver.EXTRA_AUDIO_PATH, audioPath)
             putExtra(AdhanAlarmReceiver.EXTRA_PRAYER_NAME, prayerName)
+            putExtra(AdhanAlarmReceiver.EXTRA_ALARM_ID, alarmId)
         }
 
         return PendingIntent.getBroadcast(
@@ -168,55 +286,15 @@ object AdhanAlarmScheduler {
         )
     }
 
-    private fun saveAlarm(
+    private fun saveAlarms(
         context: Context,
-        alarmId: Int,
-        triggerAtMillis: Long,
-        audioPath: String,
-        prayerName: String
+        alarms: JSONArray
     ) {
-        val alarms = readSavedAlarms(context)
-
-        val updated = JSONArray()
-
-        for (index in 0 until alarms.length()) {
-            val alarm = alarms.optJSONObject(index) ?: continue
-
-            if (alarm.optInt("id") != alarmId) {
-                updated.put(alarm)
-            }
-        }
-
-        updated.put(
-            JSONObject().apply {
-                put("id", alarmId)
-                put("time", triggerAtMillis)
-                put("audioPath", audioPath)
-                put("prayerName", prayerName)
-            }
-        )
-
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(ALARMS_KEY, updated.toString())
-            .apply()
-    }
-
-    private fun removeSavedAlarm(context: Context, alarmId: Int) {
-        val alarms = readSavedAlarms(context)
-        val updated = JSONArray()
-
-        for (index in 0 until alarms.length()) {
-            val alarm = alarms.optJSONObject(index) ?: continue
-
-            if (alarm.optInt("id") != alarmId) {
-                updated.put(alarm)
-            }
-        }
-
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(ALARMS_KEY, updated.toString())
+        context.getSharedPreferences(
+            PREFS_NAME,
+            Context.MODE_PRIVATE
+        ).edit()
+            .putString(ALARMS_KEY, alarms.toString())
             .apply()
     }
 
@@ -227,7 +305,11 @@ object AdhanAlarmScheduler {
         ).getString(ALARMS_KEY, null)
 
         return try {
-            if (json.isNullOrBlank()) JSONArray() else JSONArray(json)
+            if (json.isNullOrBlank()) {
+                JSONArray()
+            } else {
+                JSONArray(json)
+            }
         } catch (_: Exception) {
             JSONArray()
         }
