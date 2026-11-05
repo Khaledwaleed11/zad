@@ -4,11 +4,11 @@ class QuranLoadingView extends StatelessWidget {
   const QuranLoadingView({super.key});
 
   Widget _shimmerBox(
-      BuildContext context, {
-        required double width,
-        required double height,
-        required double radius,
-      }) {
+    BuildContext context, {
+    required double width,
+    required double height,
+    required double radius,
+  }) {
     final colors = Theme.of(context).colorScheme;
 
     return TweenAnimationBuilder<double>(
@@ -39,16 +39,14 @@ class QuranLoadingView extends StatelessWidget {
       child: Column(
         children: List.generate(
           6,
-              (index) => Container(
+          (index) => Container(
             height: 78,
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(19),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.3),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
             ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -58,31 +56,16 @@ class QuranLoadingView extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  _shimmerBox(
-                    context,
-                    width: 44,
-                    height: 44,
-                    radius: 13,
-                  ),
+                  _shimmerBox(context, width: 44, height: 44, radius: 13),
                   const SizedBox(width: 13),
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _shimmerBox(
-                          context,
-                          width: 90,
-                          height: 14,
-                          radius: 5,
-                        ),
+                        _shimmerBox(context, width: 90, height: 14, radius: 5),
                         const SizedBox(height: 8),
-                        _shimmerBox(
-                          context,
-                          width: 130,
-                          height: 9,
-                          radius: 4,
-                        ),
+                        _shimmerBox(context, width: 130, height: 9, radius: 4),
                       ],
                     ),
                   ),

@@ -1,13 +1,9 @@
-
 import 'package:flutter/material.dart';
 
 class SurahLoadingView extends StatelessWidget {
   final ColorScheme colors;
 
-  const SurahLoadingView({
-    super.key,
-    required this.colors,
-  });
+  const SurahLoadingView({super.key, required this.colors});
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +18,7 @@ class SurahLoadingView extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(21),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.45),
-            ),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.45)),
           ),
           child: Container(
             height: 175,
@@ -32,9 +26,7 @@ class SurahLoadingView extends StatelessWidget {
             decoration: BoxDecoration(
               color: colors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,10 +46,7 @@ class SurahLoadingView extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingBox({
-    required double width,
-    required double height,
-  }) {
+  Widget _buildLoadingBox({required double width, required double height}) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.3, end: 0.8),
       duration: const Duration(milliseconds: 900),

@@ -1,4 +1,3 @@
-
 import '../entities/surah_entity.dart';
 import '../repositories/quran_repository.dart';
 

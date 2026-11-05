@@ -4,34 +4,57 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/quran_cubit.dart';
 import '../cubit/quran_state.dart';
 
-class QuranRecitersBottomSheet extends StatelessWidget {
+class QuranRecitersBottomSheet extends StatefulWidget {
   final QuranCubit quranCubit;
 
-  const QuranRecitersBottomSheet({
-    super.key,
-    required this.quranCubit,
-  });
+  const QuranRecitersBottomSheet({super.key, required this.quranCubit});
 
-  static Future<void> show(
-      BuildContext context,
-      QuranCubit quranCubit,
-      ) async {
+  static Future<void> show(BuildContext context, QuranCubit quranCubit) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) {
-        return QuranRecitersBottomSheet(
-          quranCubit: quranCubit,
-        );
+        return QuranRecitersBottomSheet(quranCubit: quranCubit);
       },
     );
   }
 
   @override
+  State<QuranRecitersBottomSheet> createState() =>
+      _QuranRecitersBottomSheetState();
+}
+
+class _QuranRecitersBottomSheetState extends State<QuranRecitersBottomSheet> {
+  final TextEditingController _searchController = TextEditingController();
+
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<dynamic> _filterReciters(QuranState state) {
+    if (_searchQuery.trim().isEmpty) {
+      return state.reciters;
+    }
+
+    final query = _searchQuery.trim().toLowerCase();
+
+    return state.reciters.where((reciter) {
+      final arabicName = reciter.name.toLowerCase();
+      final englishName = reciter.englishName?.toLowerCase() ?? '';
+
+      return arabicName.contains(query) || englishName.contains(query);
+    }).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<QuranCubit, QuranState>(
-      bloc: quranCubit,
+      bloc: widget.quranCubit,
       builder: (context, state) {
         final colors = Theme.of(context).colorScheme;
 
@@ -41,9 +64,7 @@ class QuranRecitersBottomSheet extends StatelessWidget {
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.12),
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(28),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(
               color: colors.primary.withValues(alpha: 0.65),
               width: 1.2,
@@ -55,9 +76,7 @@ class QuranRecitersBottomSheet extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(23),
               ),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.25),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
             ),
             child: SafeArea(
               child: Column(
@@ -102,13 +121,79 @@ class QuranRecitersBottomSheet extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                  // Search Field
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      textDirection: TextDirection.rtl,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'ابحث عن اسم القارئ...',
+                        hintStyle: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: colors.primary,
+                        ),
+                        suffixIcon: _searchQuery.isEmpty
+                            ? null
+                            : IconButton(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.close_rounded,
+                                  color: colors.onSurfaceVariant,
+                                ),
+                              ),
+                        filled: true,
+                        fillColor: colors.primary.withValues(alpha: 0.06),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 13,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: colors.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: colors.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: colors.primary,
+                            width: 1.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
                   Divider(
                     height: 1,
                     color: colors.primary.withValues(alpha: 0.22),
                   ),
-                  Expanded(
-                    child: _buildRecitersList(context, state),
-                  ),
+                  Expanded(child: _buildRecitersList(context, state)),
                 ],
               ),
             ),
@@ -118,10 +203,7 @@ class QuranRecitersBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildRecitersList(
-      BuildContext context,
-      QuranState state,
-      ) {
+  Widget _buildRecitersList(BuildContext context, QuranState state) {
     final colors = Theme.of(context).colorScheme;
 
     if (state.recitersStatus == QuranRequestStatus.loading ||
@@ -141,11 +223,7 @@ class QuranRecitersBottomSheet extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.cloud_off_rounded,
-                size: 42,
-                color: colors.error,
-              ),
+              Icon(Icons.cloud_off_rounded, size: 42, color: colors.error),
               const SizedBox(height: 12),
               Text(
                 'تعذر تحميل القرّاء',
@@ -156,7 +234,7 @@ class QuranRecitersBottomSheet extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               FilledButton.icon(
-                onPressed: () => quranCubit.loadReciters(),
+                onPressed: () => widget.quranCubit.loadReciters(),
                 icon: const Icon(Icons.refresh_rounded),
                 label: const Text('إعادة المحاولة'),
               ),
@@ -178,15 +256,39 @@ class QuranRecitersBottomSheet extends StatelessWidget {
       );
     }
 
+    final filteredReciters = _filterReciters(state);
+
+    if (filteredReciters.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off_rounded,
+              size: 42,
+              color: colors.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'لا توجد نتائج مطابقة للبحث',
+              style: TextStyle(
+                color: colors.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
-      itemCount: state.reciters.length,
-      separatorBuilder: (_, _) => Divider(
-        height: 1,
-        color: colors.primary.withValues(alpha: 0.15),
-      ),
+      itemCount: filteredReciters.length,
+      separatorBuilder: (_, _) =>
+          Divider(height: 1, color: colors.primary.withValues(alpha: 0.15)),
       itemBuilder: (context, index) {
-        final reciter = state.reciters[index];
+        final reciter = filteredReciters[index];
+
         final isSelected =
             state.selectedReciter?.identifier == reciter.identifier;
 
@@ -198,7 +300,7 @@ class QuranRecitersBottomSheet extends StatelessWidget {
               vertical: 3,
             ),
             onTap: () async {
-              await quranCubit.selectReciter(reciter);
+              await widget.quranCubit.selectReciter(reciter);
 
               if (context.mounted) {
                 Navigator.pop(context);
@@ -214,10 +316,7 @@ class QuranRecitersBottomSheet extends StatelessWidget {
                   color: colors.primary.withValues(alpha: 0.25),
                 ),
               ),
-              child: Icon(
-                Icons.person_rounded,
-                color: colors.primary,
-              ),
+              child: Icon(Icons.person_rounded, color: colors.primary),
             ),
             title: Text(
               reciter.name,
@@ -231,19 +330,15 @@ class QuranRecitersBottomSheet extends StatelessWidget {
             subtitle: reciter.englishName == null
                 ? null
                 : Text(
-              reciter.englishName!,
-              style: TextStyle(
-                fontSize: 11,
-                color: colors.onSurfaceVariant,
-              ),
-            ),
+                    reciter.englishName!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
             trailing: Icon(
-              isSelected
-                  ? Icons.check_circle_rounded
-                  : Icons.circle_outlined,
-              color: isSelected
-                  ? colors.primary
-                  : colors.outlineVariant,
+              isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
+              color: isSelected ? colors.primary : colors.outlineVariant,
             ),
           ),
         );
@@ -252,25 +347,19 @@ class QuranRecitersBottomSheet extends StatelessWidget {
   }
 
   Widget _buildIconContainer(
-      ColorScheme colors,
-      IconData icon, {
-        double size = 40,
-      }) {
+    ColorScheme colors,
+    IconData icon, {
+    double size = 40,
+  }) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
       ),
-      child: Icon(
-        icon,
-        color: colors.primary,
-        size: 20,
-      ),
+      child: Icon(icon, color: colors.primary, size: 20),
     );
   }
 }

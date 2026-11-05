@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/surah_entity.dart';
@@ -7,18 +6,13 @@ class SurahItem extends StatelessWidget {
   final SurahEntity surah;
   final VoidCallback onTap;
 
-  const SurahItem({
-    super.key,
-    required this.surah,
-    required this.onTap,
-  });
+  const SurahItem({super.key, required this.surah, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    final bool isMeccan =
-        surah.revelationType.toLowerCase() == 'meccan';
+    final bool isMeccan = surah.revelationType.toLowerCase() == 'meccan';
 
     return Material(
       color: Colors.transparent,
@@ -27,10 +21,7 @@ class SurahItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(15),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 13,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
           child: Row(
             children: [
               // Surah Number

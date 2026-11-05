@@ -47,3 +47,5 @@
 
     assets:
       - assets/azkar/azkar.json
+      - assets/data/duas.json
+      - assets/quran/quran-uthmani.txt

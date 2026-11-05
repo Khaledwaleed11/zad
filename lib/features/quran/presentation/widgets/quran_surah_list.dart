@@ -20,35 +20,29 @@ class QuranSurahList extends StatelessWidget {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-              (context, index) {
-            final surah = surahs[index];
-            final delay = (index * 0.035).clamp(0.0, 0.55);
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final surah = surahs[index];
+          final delay = (index * 0.035).clamp(0.0, 0.55);
 
-            return TweenAnimationBuilder<double>(
-              key: ValueKey('${surah.number}_$searchQuery'),
-              tween: Tween<double>(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOutCubic,
-              builder: (context, value, child) {
-                final adjusted = (value - delay).clamp(0.0, 1.0);
+          return TweenAnimationBuilder<double>(
+            key: ValueKey('${surah.number}_$searchQuery'),
+            tween: Tween<double>(begin: 0, end: 1),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              final adjusted = (value - delay).clamp(0.0, 1.0);
 
-                return Opacity(
-                  opacity: adjusted,
-                  child: Transform.translate(
-                    offset: Offset(0, 18 * (1 - adjusted)),
-                    child: child,
-                  ),
-                );
-              },
-              child: QuranSurahCard(
-                surah: surah,
-                onTap: () => onSurahTap(surah),
-              ),
-            );
-          },
-          childCount: surahs.length,
-        ),
+              return Opacity(
+                opacity: adjusted,
+                child: Transform.translate(
+                  offset: Offset(0, 18 * (1 - adjusted)),
+                  child: child,
+                ),
+              );
+            },
+            child: QuranSurahCard(surah: surah, onTap: () => onSurahTap(surah)),
+          );
+        }, childCount: surahs.length),
       ),
     );
   }

@@ -14,21 +14,21 @@ class ReciterModel extends ReciterEntity {
   });
 
   factory ReciterModel.fromJson(
-      Map<String, dynamic> reciterJson,
-      Map<String, dynamic> moshafJson,
-      ) {
+    Map<String, dynamic> reciterJson,
+    Map<String, dynamic> moshafJson,
+  ) {
     final rawSurahList = moshafJson['surah_list'];
 
     final surahList = rawSurahList is List
         ? rawSurahList
-        .map((value) => int.tryParse(value.toString()))
-        .whereType<int>()
-        .toList()
+              .map((value) => int.tryParse(value.toString()))
+              .whereType<int>()
+              .toList()
         : (rawSurahList?.toString() ?? '')
-        .split(',')
-        .map((value) => int.tryParse(value.trim()))
-        .whereType<int>()
-        .toList();
+              .split(',')
+              .map((value) => int.tryParse(value.trim()))
+              .whereType<int>()
+              .toList();
 
     return ReciterModel(
       identifier: moshafJson['id'].toString(),
@@ -37,9 +37,7 @@ class ReciterModel extends ReciterEntity {
       reciterId: int.parse(reciterJson['id'].toString()),
       moshafName: moshafJson['name'] as String,
       server: moshafJson['server'] as String,
-      surahTotal: int.parse(
-        moshafJson['surah_total'].toString(),
-      ),
+      surahTotal: int.parse(moshafJson['surah_total'].toString()),
       surahList: surahList,
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zad/features/prayer_times/presentation/screens/prayer_times_screen.dart';
 import 'package:zad/features/settings/presentation/screens/setting_screen.dart';
-
+import '../../../dua/presentation/screens/dua_screen.dart';
 import '../../../../core/dependency_injection/injection_container.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../notifications/domain/usecases/initialize_notifications.dart';
@@ -312,6 +312,25 @@ class _HomeScreenState extends State<HomeScreen>
                 );
               },
             ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            QuickActionCard(
+              icon: Icons.volunteer_activism_rounded,
+              title: 'الأدعية',
+              subtitle: 'أدعية متنوعة لكل وقت',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DuaScreen(),
+                  ),
+                );
+              },
+            ),
+            const Expanded(child: SizedBox()),
           ],
         ),
       ],

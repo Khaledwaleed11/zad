@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -38,7 +39,10 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
     );
 
     _headerSlide =
-        Tween<Offset>(begin: const Offset(0, -0.08), end: Offset.zero).animate(
+        Tween<Offset>(
+          begin: const Offset(0, -0.08),
+          end: Offset.zero,
+        ).animate(
           CurvedAnimation(
             parent: _pageController,
             curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
@@ -46,7 +50,10 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
         );
 
     _contentSlide =
-        Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(
+        Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(
           CurvedAnimation(
             parent: _pageController,
             curve: const Interval(0.2, 0.65, curve: Curves.easeOutCubic),
@@ -94,6 +101,59 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
     );
   }
 
+  Widget _buildSliverAppBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return SliverAppBar(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      surfaceTintColor: Colors.transparent,
+      foregroundColor: colors.onSurface,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      pinned: false,
+      floating: false,
+      automaticallyImplyLeading: false,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFA88746).withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFD6BE83),
+              ),
+            ),
+            child: const Icon(
+              Icons.menu_book_rounded,
+              size: 19,
+              color: Color(0xFFA88746),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            'الأحاديث النبوية',
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          tooltip: 'مكتبة الأحاديث',
+          icon: const Icon(Icons.library_books_outlined),
+          onPressed: _openLibrary,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -101,42 +161,6 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: const Color(0xFFA88746).withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFD6BE83)),
-              ),
-              child: const Icon(
-                Icons.menu_book_rounded,
-                size: 19,
-                color: Color(0xFFA88746),
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'الأحاديث النبوية',
-              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'مكتبة الأحاديث',
-            icon: const Icon(Icons.library_books_outlined),
-            onPressed: _openLibrary,
-          ),
-        ],
-      ),
       body: BlocConsumer<HadithCubit, HadithState>(
         listener: (context, state) {
           if (state.hadithOfTheDay != null) {
@@ -145,22 +169,51 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
         },
         builder: (context, state) {
           if (state.isLoadingDaily && state.hadithOfTheDay == null) {
-            return const HadithLoadingWidget();
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildSliverAppBar(context),
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: HadithLoadingWidget(),
+                ),
+              ],
+            );
           }
 
-          if (state.errorMessage != null && state.hadithOfTheDay == null) {
-            return _buildError(colors, state.errorMessage!);
+          if (state.errorMessage != null &&
+              state.hadithOfTheDay == null) {
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildSliverAppBar(context),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildError(colors, state.errorMessage!),
+                ),
+              ],
+            );
           }
 
           final hadith = state.hadithOfTheDay;
 
           if (hadith == null) {
-            return const SizedBox.shrink();
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildSliverAppBar(context),
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: SizedBox.shrink(),
+                ),
+              ],
+            );
           }
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
+              _buildSliverAppBar(context),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
                 sliver: SliverList(
@@ -183,12 +236,17 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
                               hadith: hadith,
                               isLoading: state.isLoadingDaily,
                               onAnotherHadith: () {
-                                context.read<HadithCubit>().loadAnotherHadith();
+                                context
+                                    .read<HadithCubit>()
+                                    .loadAnotherHadith();
                               },
                             ),
                             const SizedBox(height: 16),
                             if (state.errorMessage != null)
-                              _buildInlineError(colors, state.errorMessage!),
+                              _buildInlineError(
+                                colors,
+                                state.errorMessage!,
+                              ),
                             HadithSourceInfo(
                               source: hadith.source,
                               license: hadith.license,
@@ -215,15 +273,20 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
   }
 
   Widget _buildHeader(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
 
-    final paper = isDark ? const Color(0xFF252017) : const Color(0xFFF7F1DF);
+    final paper = isDark
+        ? const Color(0xFF252017)
+        : const Color(0xFFF7F1DF);
 
     final innerPaper = isDark
         ? const Color(0xFF201B13)
         : const Color(0xFFFFFCF4);
 
-    final gold = isDark ? const Color(0xFFD6BE83) : const Color(0xFFA88746);
+    final gold = isDark
+        ? const Color(0xFFD6BE83)
+        : const Color(0xFFA88746);
 
     final lightGold = isDark
         ? const Color(0xFF806B43)
@@ -344,7 +407,11 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
     );
   }
 
-  Widget _buildDetailsButton(ColorScheme colors, String book, int seq) {
+  Widget _buildDetailsButton(
+      ColorScheme colors,
+      String book,
+      int seq,
+      ) {
     final gold = Theme.of(context).brightness == Brightness.dark
         ? const Color(0xFFD6BE83)
         : const Color(0xFFA88746);
@@ -353,11 +420,15 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: () {
-          _openDetails('https://bayan.alwa7i.com/api/hadith/$book/$seq');
+          _openDetails(
+            'https://bayan.alwa7i.com/api/hadith/$book/$seq',
+          );
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: gold,
-          side: BorderSide(color: gold.withValues(alpha: 0.65)),
+          side: BorderSide(
+            color: gold.withValues(alpha: 0.65),
+          ),
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -372,7 +443,10 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
     );
   }
 
-  Widget _buildInlineError(ColorScheme colors, String message) {
+  Widget _buildInlineError(
+      ColorScheme colors,
+      String message,
+      ) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -384,12 +458,18 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
       child: Text(
         message,
         textAlign: TextAlign.center,
-        style: TextStyle(color: colors.onErrorContainer, fontSize: 12),
+        style: TextStyle(
+          color: colors.onErrorContainer,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  Widget _buildError(ColorScheme colors, String message) {
+  Widget _buildError(
+      ColorScheme colors,
+      String message,
+      ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),

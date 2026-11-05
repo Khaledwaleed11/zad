@@ -23,9 +23,7 @@ class QuranSearchField extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.4)),
       ),
       child: TextField(
         controller: controller,
@@ -40,10 +38,7 @@ class QuranSearchField extends StatelessWidget {
         ),
         decoration: InputDecoration(
           hintText: 'ابحث عن اسم السورة أو رقمها...',
-          hintStyle: TextStyle(
-            fontSize: 11,
-            color: colors.onSurfaceVariant,
-          ),
+          hintStyle: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
           prefixIcon: Icon(
             Icons.search_rounded,
             color: colors.primary,
@@ -51,13 +46,13 @@ class QuranSearchField extends StatelessWidget {
           ),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-            onPressed: onClear,
-            icon: Icon(
-              Icons.close_rounded,
-              color: colors.primary,
-              size: 19,
-            ),
-          )
+                  onPressed: onClear,
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: colors.primary,
+                    size: 19,
+                  ),
+                )
               : null,
           filled: true,
           fillColor: colors.surface,
@@ -75,10 +70,7 @@ class QuranSearchField extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(13),
-            borderSide: BorderSide(
-              color: colors.primary,
-              width: 1,
-            ),
+            borderSide: BorderSide(color: colors.primary, width: 1),
           ),
         ),
       ),

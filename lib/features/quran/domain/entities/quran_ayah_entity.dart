@@ -1,4 +1,3 @@
-
 class QuranAyahEntity {
   final String text;
   final int number;

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class SurahErrorView extends StatelessWidget {
@@ -19,10 +18,7 @@ class SurahErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildStatusIcon(
-              Icons.cloud_off_rounded,
-              isError: true,
-            ),
+            _buildStatusIcon(Icons.cloud_off_rounded, isError: true),
             const SizedBox(height: 18),
             Text(
               'تعذر تحميل السورة',
@@ -54,10 +50,7 @@ class SurahErrorView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusIcon(
-      IconData icon, {
-        bool isError = false,
-      }) {
+  Widget _buildStatusIcon(IconData icon, {bool isError = false}) {
     final iconColor = isError ? colors.error : colors.primary;
 
     return Container(
@@ -66,9 +59,7 @@ class SurahErrorView extends StatelessWidget {
       decoration: BoxDecoration(
         color: iconColor.withValues(alpha: 0.10),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: iconColor.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: iconColor.withValues(alpha: 0.35)),
       ),
       child: Icon(icon, size: 35, color: iconColor),
     );

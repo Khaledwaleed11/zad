@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,10 +20,7 @@ import '../widgets/surah_loading_view.dart';
 class SurahScreen extends StatefulWidget {
   final SurahEntity surah;
 
-  const SurahScreen({
-    super.key,
-    required this.surah,
-  });
+  const SurahScreen({super.key, required this.surah});
 
   @override
   State<SurahScreen> createState() => _SurahScreenState();
@@ -113,9 +109,7 @@ class _SurahScreenState extends State<SurahScreen>
     }
   }
 
-  Future<void> toggleSurahPlayback(
-      List<QuranAyahEntity> ayahs,
-      ) async {
+  Future<void> toggleSurahPlayback(List<QuranAyahEntity> ayahs) async {
     final status = quranCubit.state.audioStatus;
 
     if (status == QuranAudioStatus.loading) return;
@@ -134,7 +128,7 @@ class _SurahScreenState extends State<SurahScreen>
     await Clipboard.setData(
       ClipboardData(
         text:
-        '${ayah.text}\n\n'
+            '${ayah.text}\n\n'
             '${widget.surah.name} - الآية ${ayah.numberInSurah}',
       ),
     );
@@ -150,21 +144,12 @@ class _SurahScreenState extends State<SurahScreen>
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
         backgroundColor: colors.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         content: const Row(
           children: [
-            Icon(
-              Icons.check_rounded,
-              color: Colors.white,
-              size: 18,
-            ),
+            Icon(Icons.check_rounded, color: Colors.white, size: 18),
             SizedBox(width: 8),
-            Text(
-              'تم نسخ الآية',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
+            Text('تم نسخ الآية', style: TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
       ),
@@ -176,7 +161,7 @@ class _SurahScreenState extends State<SurahScreen>
       await SharePlus.instance.share(
         ShareParams(
           text:
-          '${ayah.text}\n\n'
+              '${ayah.text}\n\n'
               '${widget.surah.name} - الآية ${ayah.numberInSurah}\n'
               '${AppConstants.appName}',
         ),
@@ -186,11 +171,9 @@ class _SurahScreenState extends State<SurahScreen>
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تعذر مشاركة الآية'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تعذر مشاركة الآية')));
     }
   }
 
@@ -222,24 +205,17 @@ class _SurahScreenState extends State<SurahScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: colors.error,
-              content: Text(
-                'تعذر تشغيل الصوت: ${state.audioError}',
-              ),
+              content: Text('تعذر تشغيل الصوت: ${state.audioError}'),
             ),
           );
         }
       },
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: SurahAppBar(
-          surah: widget.surah,
-          onRefresh: loadSurah,
-        ),
         body: BlocBuilder<QuranCubit, QuranState>(
           bloc: quranCubit,
           buildWhen: (previous, current) {
-            return previous.surahAyahsStatus !=
-                current.surahAyahsStatus ||
+            return previous.surahAyahsStatus != current.surahAyahsStatus ||
                 previous.surahAyahs != current.surahAyahs ||
                 previous.surahAyahsError != current.surahAyahsError;
           },
@@ -251,61 +227,103 @@ class _SurahScreenState extends State<SurahScreen>
     );
   }
 
-  Widget _buildBody(
-      ColorScheme colors,
-      QuranState state,
-      ) {
+  Widget _buildSliverAppBar() {
+    return SliverToBoxAdapter(
+      child: SafeArea(
+        bottom: false,
+        child: SurahAppBar(surah: widget.surah, onRefresh: loadSurah),
+      ),
+    );
+  }
+
+  Widget _buildBody(ColorScheme colors, QuranState state) {
     if (state.surahAyahsStatus == QuranRequestStatus.loading ||
         state.surahAyahsStatus == QuranRequestStatus.initial) {
-      return SurahLoadingView(colors: colors);
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          _buildSliverAppBar(),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: SurahLoadingView(colors: colors),
+          ),
+        ],
+      );
     }
 
     if (state.surahAyahsStatus == QuranRequestStatus.failure) {
-      return SurahErrorView(
-        colors: colors,
-        onRetry: loadSurah,
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          _buildSliverAppBar(),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: SurahErrorView(colors: colors, onRetry: loadSurah),
+          ),
+        ],
       );
     }
 
     if (state.surahAyahs.isEmpty) {
-      return SurahEmptyView(colors: colors);
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          _buildSliverAppBar(),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: SurahEmptyView(colors: colors),
+          ),
+        ],
+      );
     }
 
     return RefreshIndicator(
       onRefresh: loadSurah,
       color: colors.primary,
       backgroundColor: colors.surface,
-      child: ListView(
+      child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 35),
-        children: [
-          _buildSurahHeader(state.surahAyahs),
-          ...state.surahAyahs.map((ayah) {
-            final ayahKey = _ayahKeys.putIfAbsent(
-              ayah.number,
-                  () => GlobalKey(),
-            );
+        slivers: [
+          _buildSliverAppBar(),
 
-            return AnimatedAyahCard(
-              key: ValueKey(ayah.number),
-              index: ayah.numberInSurah - 1,
-              controller: _animationController,
-              child: KeyedSubtree(
-                key: ayahKey,
-                child: _buildAyahAudioCard(ayah),
-              ),
-            );
-          }),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 35),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildSurahHeader(state.surahAyahs),
+                ...state.surahAyahs.map((ayah) {
+                  final ayahKey = _ayahKeys.putIfAbsent(
+                    ayah.number,
+                    () => GlobalKey(),
+                  );
+
+                  return AnimatedAyahCard(
+                    key: ValueKey(ayah.number),
+                    index: ayah.numberInSurah - 1,
+                    controller: _animationController,
+                    child: KeyedSubtree(
+                      key: ayahKey,
+                      child: _buildAyahAudioCard(ayah),
+                    ),
+                  );
+                }),
+              ]),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSurahHeader(
-      List<QuranAyahEntity> ayahs,
-      ) {
+  Widget _buildSurahHeader(List<QuranAyahEntity> ayahs) {
     return BlocSelector<QuranCubit, QuranState, QuranAudioStatus>(
       bloc: quranCubit,
       selector: (state) => state.audioStatus,
@@ -323,18 +341,17 @@ class _SurahScreenState extends State<SurahScreen>
 
   Widget _buildAyahAudioCard(QuranAyahEntity ayah) {
     return BlocSelector<
-        QuranCubit,
-        QuranState,
-        ({bool isCurrent, QuranAudioStatus status})>(
+      QuranCubit,
+      QuranState,
+      ({bool isCurrent, QuranAudioStatus status})
+    >(
       bloc: quranCubit,
       selector: (state) {
         final isCurrent = state.currentAyahNumber == ayah.number;
 
         return (
-        isCurrent: isCurrent,
-        status: isCurrent
-            ? state.audioStatus
-            : QuranAudioStatus.initial,
+          isCurrent: isCurrent,
+          status: isCurrent ? state.audioStatus : QuranAudioStatus.initial,
         );
       },
       builder: (context, audioState) {

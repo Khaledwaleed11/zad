@@ -197,6 +197,49 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
     super.dispose();
   }
 
+  // Scrollable AppBar
+
+  Widget _buildAppBar() {
+    return AppBar(
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      surfaceTintColor: Colors.transparent,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: gold.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: lightGold),
+            ),
+            child: Icon(Icons.explore_rounded, color: gold, size: 21),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            'اتجاه القبلة',
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          onPressed: initializeQibla,
+          tooltip: 'تحديث',
+          icon: Icon(Icons.refresh_rounded, color: gold),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -232,65 +275,59 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
 
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          appBar: AppBar(
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            centerTitle: true,
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: gold.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: lightGold),
-                  ),
-                  child: Icon(Icons.explore_rounded, color: gold, size: 21),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'اتجاه القبلة',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
-                    color: textColor,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                onPressed: initializeQibla,
-                tooltip: 'تحديث',
-                icon: Icon(Icons.refresh_rounded, color: gold),
+          body: SafeArea(
+            bottom: false,
+            child: isLoading
+                ? _buildStateBody(
+                    QiblaLoadingView(
+                      isDark: isDark,
+                      paper: paper,
+                      innerPaper: innerPaper,
+                      gold: gold,
+                      lightGold: lightGold,
+                      textColor: textColor,
+                      mutedColor: mutedColor,
+                    ),
+                  )
+                : hasError || state.qiblaBearing == null
+                ? _buildStateBody(
+                    QiblaErrorView(
+                      error: error,
+                      onRetry: initializeQibla,
+                      isDark: isDark,
+                      paper: paper,
+                      innerPaper: innerPaper,
+                      gold: gold,
+                      lightGold: lightGold,
+                      textColor: textColor,
+                      mutedColor: mutedColor,
+                    ),
+                  )
+                : _buildBody(),
+          ),
+        );
+      },
+    );
+  }
+
+  // Loading and Error Views
+
+  Widget _buildStateBody(Widget stateView) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              _buildAppBar(),
+              SizedBox(
+                height: constraints.maxHeight > 0
+                    ? constraints.maxHeight - kToolbarHeight
+                    : MediaQuery.of(context).size.height * 0.7,
+                child: stateView,
               ),
             ],
           ),
-          body: isLoading
-              ? QiblaLoadingView(
-                  isDark: isDark,
-                  paper: paper,
-                  innerPaper: innerPaper,
-                  gold: gold,
-                  lightGold: lightGold,
-                  textColor: textColor,
-                  mutedColor: mutedColor,
-                )
-              : hasError || state.qiblaBearing == null
-              ? QiblaErrorView(
-                  error: error,
-                  onRetry: initializeQibla,
-                  isDark: isDark,
-                  paper: paper,
-                  innerPaper: innerPaper,
-                  gold: gold,
-                  lightGold: lightGold,
-                  textColor: textColor,
-                  mutedColor: mutedColor,
-                )
-              : _buildBody(),
         );
       },
     );
@@ -308,6 +345,8 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
           padding: const EdgeInsets.fromLTRB(18, 8, 18, 30),
           child: Column(
             children: [
+              _buildAppBar(),
+
               QiblaHeroHeader(
                 isDark: isDark,
                 paper: paper,
@@ -318,6 +357,7 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
                 mutedColor: mutedColor,
               ),
               const SizedBox(height: 18),
+
               QiblaCompassSection(
                 hasCompass: compassHeading != null,
                 isAligned: isAligned,
@@ -331,6 +371,7 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
                 mutedColor: mutedColor,
               ),
               const SizedBox(height: 16),
+
               QiblaStatusCard(
                 rotation: qiblaRotation.abs(),
                 hasCompass: compassHeading != null,
@@ -342,6 +383,7 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
                 textColor: textColor,
               ),
               const SizedBox(height: 14),
+
               Row(
                 children: [
                   Expanded(
@@ -376,6 +418,7 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
                 ],
               ),
               const SizedBox(height: 14),
+
               QiblaLocationCard(
                 isDark: isDark,
                 paper: paper,
@@ -386,6 +429,7 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
                 mutedColor: mutedColor,
               ),
               const SizedBox(height: 14),
+
               QiblaTipCard(
                 isDark: isDark,
                 paper: paper,

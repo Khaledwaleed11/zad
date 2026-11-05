@@ -1,13 +1,9 @@
-
 import 'package:flutter/material.dart';
 
 class SurahEmptyView extends StatelessWidget {
   final ColorScheme colors;
 
-  const SurahEmptyView({
-    super.key,
-    required this.colors,
-  });
+  const SurahEmptyView({super.key, required this.colors});
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +36,7 @@ class SurahEmptyView extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.10),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
       ),
       child: Icon(icon, size: 35, color: colors.primary),
     );

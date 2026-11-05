@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -12,8 +11,7 @@ import '../../domain/entities/reciter_entity.dart';
 class QuranAudioDataSource {
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  static const String _mp3QuranBaseUrl =
-      'https://mp3quran.net/api/v3';
+  static const String _mp3QuranBaseUrl = 'https://mp3quran.net/api/v3';
 
   ReciterEntity? _selectedReciter;
 
@@ -27,22 +25,19 @@ class QuranAudioDataSource {
 
   final Map<String, List<_AyahTiming>> _timingCache = {};
 
-  String get selectedReciter =>
-      _selectedReciter?.identifier ?? '';
+  String get selectedReciter => _selectedReciter?.identifier ?? '';
 
   bool get isPlaying => _audioPlayer.playing;
 
-  Stream<PlayerState> get playerStateStream =>
-      _audioPlayer.playerStateStream;
+  Stream<PlayerState> get playerStateStream => _audioPlayer.playerStateStream;
 
-  Stream<int?> get currentAyahNumberStream =>
-      _audioPlayer.positionStream
-          .map((_) => currentAyahNumber)
-          .distinct()
-          .map((ayahNumber) {
+  Stream<int?> get currentAyahNumberStream => _audioPlayer.positionStream
+      .map((_) => currentAyahNumber)
+      .distinct()
+      .map((ayahNumber) {
         print(
           'CURRENT AYAH STREAM: $ayahNumber | '
-              'POSITION: ${_audioPlayer.position.inMilliseconds} ms',
+          'POSITION: ${_audioPlayer.position.inMilliseconds} ms',
         );
         return ayahNumber;
       });
@@ -62,8 +57,7 @@ class QuranAudioDataSource {
     final position = _audioPlayer.position.inMilliseconds;
 
     for (final timing in _timings) {
-      if (position >= timing.startTime &&
-          position < timing.endTime) {
+      if (position >= timing.startTime && position < timing.endTime) {
         if (kDebugMode) {
           print('Current timing ayah: ${timing.ayahNumber}');
         }
@@ -86,6 +80,7 @@ class QuranAudioDataSource {
 
     return null;
   }
+
   // اختيار القارئ وإيقاف التلاوة السابقة.
   Future<void> selectReciter(ReciterEntity reciter) async {
     if (_selectedReciter?.identifier == reciter.identifier) {
@@ -111,17 +106,14 @@ class QuranAudioDataSource {
     print('Surah List: ${reciter.surahList}');
     print('=================================');
     if (!reciter.surahList.contains(surahNumber)) {
-      throw Exception(
-        'This reciter does not support this surah.',
-      );
+      throw Exception('This reciter does not support this surah.');
     }
 
     final server = reciter.server.endsWith('/')
         ? reciter.server
         : '${reciter.server}/';
 
-    final surahFile =
-        '${surahNumber.toString().padLeft(3, '0')}.mp3';
+    final surahFile = '${surahNumber.toString().padLeft(3, '0')}.mp3';
 
     return '$server$surahFile';
   }
@@ -132,18 +124,12 @@ class QuranAudioDataSource {
       return _timingReads!;
     }
 
-    final uri = Uri.parse(
-      '$_mp3QuranBaseUrl/ayat_timing/reads',
-    );
+    final uri = Uri.parse('$_mp3QuranBaseUrl/ayat_timing/reads');
 
-    final response = await http
-        .get(uri)
-        .timeout(const Duration(seconds: 20));
+    final response = await http.get(uri).timeout(const Duration(seconds: 20));
 
     if (response.statusCode != 200) {
-      throw Exception(
-        'Failed to load timing reads: ${response.statusCode}',
-      );
+      throw Exception('Failed to load timing reads: ${response.statusCode}');
     }
 
     final decoded = jsonDecode(response.body);
@@ -194,9 +180,9 @@ class QuranAudioDataSource {
 
       print(
         'ID: ${read['id']} | '
-            'Name: ${read['name']} | '
-            'Rewaya: ${read['rewaya']} | '
-            'Folder: $folderUrl',
+        'Name: ${read['name']} | '
+        'Rewaya: ${read['rewaya']} | '
+        'Folder: $folderUrl',
       );
 
       if (folderUrl == null || folderUrl.isEmpty) {
@@ -208,20 +194,17 @@ class QuranAudioDataSource {
       if (timingUri == null) continue;
 
       final sameHost =
-          selectedUri.host.toLowerCase() ==
-              timingUri.host.toLowerCase();
+          selectedUri.host.toLowerCase() == timingUri.host.toLowerCase();
 
-      final selectedPath =
-      selectedUri.path.replaceAll(RegExp(r'/+$'), '');
+      final selectedPath = selectedUri.path.replaceAll(RegExp(r'/+$'), '');
 
-      final timingPath =
-      timingUri.path.replaceAll(RegExp(r'/+$'), '');
+      final timingPath = timingUri.path.replaceAll(RegExp(r'/+$'), '');
 
       final samePath = selectedPath == timingPath;
 
       print(
         'Comparing ID ${read['id']}: '
-            'sameHost=$sameHost, samePath=$samePath',
+        'sameHost=$sameHost, samePath=$samePath',
       );
 
       if (sameHost && samePath) {
@@ -238,9 +221,7 @@ class QuranAudioDataSource {
   }
 
   // تحميل توقيت آيات السورة.
-  Future<List<_AyahTiming>> _loadAyahTimings(
-      int surahNumber,
-      ) async {
+  Future<List<_AyahTiming>> _loadAyahTimings(int surahNumber) async {
     print('========== TIMING LOAD DEBUG ==========');
 
     final readId = await _getTimingReadId();
@@ -260,9 +241,7 @@ class QuranAudioDataSource {
       return _timingCache[cacheKey]!;
     }
 
-    final uri = Uri.parse(
-      '$_mp3QuranBaseUrl/ayat_timing',
-    ).replace(
+    final uri = Uri.parse('$_mp3QuranBaseUrl/ayat_timing').replace(
       queryParameters: {
         'surah': surahNumber.toString(),
         'read': readId.toString(),
@@ -271,9 +250,7 @@ class QuranAudioDataSource {
 
     print('Timing URL: $uri');
 
-    final response = await http
-        .get(uri)
-        .timeout(const Duration(seconds: 20));
+    final response = await http.get(uri).timeout(const Duration(seconds: 20));
 
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
@@ -296,19 +273,15 @@ class QuranAudioDataSource {
         .whereType<Map>()
         .map(
           (item) => _AyahTiming(
-        ayahNumber:
-        int.tryParse(item['ayah'].toString()) ?? -1,
-        startTime:
-        int.tryParse(item['start_time'].toString()) ?? 0,
-        endTime:
-        int.tryParse(item['end_time'].toString()) ?? 0,
-      ),
-    )
+            ayahNumber: int.tryParse(item['ayah'].toString()) ?? -1,
+            startTime: int.tryParse(item['start_time'].toString()) ?? 0,
+            endTime: int.tryParse(item['end_time'].toString()) ?? 0,
+          ),
+        )
         .where(
           (timing) =>
-      timing.ayahNumber > 0 &&
-          timing.endTime > timing.startTime,
-    )
+              timing.ayahNumber > 0 && timing.endTime > timing.startTime,
+        )
         .toList();
 
     print('Valid timings: ${timings.length}');
@@ -320,9 +293,7 @@ class QuranAudioDataSource {
   }
 
   // تحميل ملف السورة وتجهيز بياناتها.
-  Future<void> _loadSurah(
-      List<QuranAyahEntity> ayahs,
-      ) async {
+  Future<void> _loadSurah(List<QuranAyahEntity> ayahs) async {
     if (ayahs.isEmpty) return;
 
     final surahNumber = ayahs.first.surahNumber;
@@ -357,7 +328,7 @@ class QuranAudioDataSource {
     }
 
     final timing = _timings.where(
-          (item) => item.ayahNumber == ayah.numberInSurah,
+      (item) => item.ayahNumber == ayah.numberInSurah,
     );
 
     if (timing.isEmpty) {
@@ -368,8 +339,7 @@ class QuranAudioDataSource {
 
     final selectedTiming = timing.first;
 
-    if (_singleAyahNumber == ayah.number &&
-        currentAyahNumber == ayah.number) {
+    if (_singleAyahNumber == ayah.number && currentAyahNumber == ayah.number) {
       if (_audioPlayer.playing) {
         await pause();
       } else {
@@ -387,21 +357,16 @@ class QuranAudioDataSource {
       end: Duration(milliseconds: selectedTiming.endTime),
     );
 
-    await _audioPlayer.seek(
-      Duration(milliseconds: selectedTiming.startTime),
-    );
+    await _audioPlayer.seek(Duration(milliseconds: selectedTiming.startTime));
 
     unawaited(_audioPlayer.play());
   }
 
   // تشغيل السورة كاملة.
-  Future<void> playSurah(
-      List<QuranAyahEntity> ayahs,
-      ) async {
+  Future<void> playSurah(List<QuranAyahEntity> ayahs) async {
     if (ayahs.isEmpty) return;
 
-    final isSameSurah =
-        _loadedSurahNumber == ayahs.first.surahNumber;
+    final isSameSurah = _loadedSurahNumber == ayahs.first.surahNumber;
 
     if (isSameSurah) {
       if (_audioPlayer.playing && _singleAyahNumber == null) {

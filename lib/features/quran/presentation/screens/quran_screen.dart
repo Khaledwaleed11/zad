@@ -1,13 +1,16 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/memorization_test_config_entity.dart';
+import '../cubit/memorization_test_cubit.dart';
+import 'memorization_test_screen.dart';
+import 'memorization_test_setup_screen.dart';
 import '../../../../core/dependency_injection/injection_container.dart';
 import '../../domain/entities/surah_entity.dart';
 import '../cubit/quran_cubit.dart';
 import '../cubit/quran_state.dart';
 import 'surah_screen.dart';
-
+import '../widgets/memorization_test_banner.dart';
 import '../widgets/quran_app_bar.dart';
 import '../widgets/quran_hero_header.dart';
 import '../widgets/quran_reciter_selector.dart';
@@ -58,6 +61,37 @@ class _QuranScreenState extends State<QuranScreen>
     quranCubit.loadReciters();
   }
 
+  Future<void> openMemorizationTestSetup() async {
+    searchFocusNode.unfocus();
+
+    final config = await Navigator.push<MemorizationTestConfigEntity>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MemorizationTestSetupScreen(
+          surahs: quranCubit.state.surahs,
+        ),
+      ),
+    );
+
+    if (!mounted || config == null) return;
+
+    await Navigator.of(context).push<void>(
+      PageRouteBuilder<void>(
+        opaque: true,
+        maintainState: true,
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return BlocProvider(
+            create: (_) => sl<MemorizationTestCubit>()
+              ..startTest(config: config),
+            child: const MemorizationTestScreen(),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> loadSurahs() async {
     await quranCubit.loadSurahs();
   }
@@ -93,8 +127,7 @@ class _QuranScreenState extends State<QuranScreen>
     final results = allSurahs.where((surah) {
       final arabicName = normalizeArabic(surah.name);
       final englishName = surah.englishName.trim().toLowerCase();
-      final translation =
-      surah.englishNameTranslation.trim().toLowerCase();
+      final translation = surah.englishNameTranslation.trim().toLowerCase();
       final number = surah.number.toString();
 
       return arabicName.contains(searchQuery) ||
@@ -130,28 +163,18 @@ class _QuranScreenState extends State<QuranScreen>
         pageBuilder: (context, animation, secondaryAnimation) {
           return SurahScreen(surah: surah);
         },
-        transitionsBuilder: (
-            context,
-            animation,
-            secondaryAnimation,
-            child,
-            ) {
-          final slideAnimation = Tween<Offset>(
-            begin: const Offset(0.10, 0),
-            end: Offset.zero,
-          ).animate(
-            CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            ),
-          );
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slideAnimation =
+              Tween<Offset>(
+                begin: const Offset(0.10, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
 
           return FadeTransition(
             opacity: animation,
-            child: SlideTransition(
-              position: slideAnimation,
-              child: child,
-            ),
+            child: SlideTransition(position: slideAnimation, child: child),
           );
         },
       ),
@@ -161,11 +184,29 @@ class _QuranScreenState extends State<QuranScreen>
   @override
   void dispose() {
     searchController.dispose();
+    searchFocusNode.dispose();
     _screenController.dispose();
     quranCubit.close();
-    searchFocusNode.dispose();
-
     super.dispose();
+  }
+
+  // Scrollable AppBar with the same screen background color.
+  Widget _buildSliverAppBar(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SliverToBoxAdapter(
+      child: Theme(
+        data: theme.copyWith(
+          appBarTheme: theme.appBarTheme.copyWith(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+          ),
+        ),
+        child: const QuranAppBar(),
+      ),
+    );
   }
 
   @override
@@ -176,7 +217,7 @@ class _QuranScreenState extends State<QuranScreen>
     return BlocConsumer<QuranCubit, QuranState>(
       bloc: quranCubit,
       listenWhen: (previous, current) =>
-      previous.surahsStatus != current.surahsStatus &&
+          previous.surahsStatus != current.surahsStatus &&
           current.surahsStatus == QuranRequestStatus.success,
       listener: (context, state) {
         filteredSurahs = state.surahs;
@@ -192,18 +233,20 @@ class _QuranScreenState extends State<QuranScreen>
       builder: (context, state) {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          appBar: const QuranAppBar(),
           body: RefreshIndicator(
             onRefresh: loadSurahs,
             color: colors.primary,
             backgroundColor: colors.surface,
+            displacement: 45,
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
+                  _buildSliverAppBar(context),
+
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
@@ -212,10 +255,13 @@ class _QuranScreenState extends State<QuranScreen>
                         children: [
                           const QuranHeroHeader(),
                           const SizedBox(height: 13),
-
+                          MemorizationTestBanner(
+                            onTap: openMemorizationTestSetup,
+                          ),
+                          const SizedBox(height: 13),
                           QuranReciterSelector(
                             reciterName:
-                            state.selectedReciter?.name ?? 'اختر القارئ',
+                                state.selectedReciter?.name ?? 'اختر القارئ',
                             recitersStatus: state.recitersStatus,
                             onTap: showRecitersBottomSheet,
                           ),
@@ -235,8 +281,9 @@ class _QuranScreenState extends State<QuranScreen>
                             resultCount: searchController.text.trim().isNotEmpty
                                 ? filteredSurahs.length
                                 : state.surahs.length,
-                            isSearching:
-                            searchController.text.trim().isNotEmpty,
+                            isSearching: searchController.text
+                                .trim()
+                                .isNotEmpty,
                             onClear: clearSearch,
                           ),
                         ],
@@ -258,7 +305,8 @@ class _QuranScreenState extends State<QuranScreen>
     if (state.surahsStatus == QuranRequestStatus.loading ||
         state.surahsStatus == QuranRequestStatus.initial) {
       return [
-        const SliverToBoxAdapter(
+        const SliverFillRemaining(
+          hasScrollBody: false,
           child: QuranLoadingView(),
         ),
       ];
@@ -266,20 +314,18 @@ class _QuranScreenState extends State<QuranScreen>
 
     if (state.surahsStatus == QuranRequestStatus.failure) {
       return [
-        SliverToBoxAdapter(
-          child: QuranErrorView(
-            onRetry: loadSurahs,
-          ),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: QuranErrorView(onRetry: loadSurahs),
         ),
       ];
     }
 
     if (filteredSurahs.isEmpty) {
       return [
-        SliverToBoxAdapter(
-          child: QuranEmptyView(
-            onClear: clearSearch,
-          ),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: QuranEmptyView(onClear: clearSearch),
         ),
       ];
     }

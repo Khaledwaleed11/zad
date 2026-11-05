@@ -179,227 +179,257 @@ class _SettingsScreenViewState extends State<_SettingsScreenView>
 
         return Scaffold(
           backgroundColor: _paper,
-          appBar: SettingsAppBar(
-            paper: _paper,
-            gold: _gold,
-            textColor: _textColor,
-          ),
-          body: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
-            children: [
-              _animatedSection(
-                slide: _headerAnimation,
-                child: _buildHeroHeader(),
-              ),
-
-              const SizedBox(height: 34),
-
-              _animatedSection(
-                slide: _appearanceAnimation,
-                child: Column(
-                  children: [
-                    _buildSectionHeader(
-                      icon: Icons.palette_outlined,
-                      title: 'المظهر',
-                      subtitle: 'خصّص شكل التطبيق',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildThemeTile(),
-                  ],
+          body: SafeArea(
+            bottom: false,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SettingsAppBar(
+                    paper: _paper,
+                    gold: _gold,
+                    textColor: _textColor,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 34),
-
-              _animatedSection(
-                slide: _prayerAnimation,
-                child: Column(
-                  children: [
-                    _buildSectionHeader(
-                      icon: Icons.mosque_outlined,
-                      title: 'الصلاة',
-                      subtitle: 'إعدادات مواقيت الصلاة',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSettingsGroup(
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
                       children: [
-                        _buildTile(
-                          icon: Icons.location_on_outlined,
-                          title: 'الموقع الحالي',
-                          subtitle: 'القاهرة، مصر',
-                          trailing: _buildArrow(),
-                          onTap: () {},
+                        _animatedSection(
+                          slide: _headerAnimation,
+                          child: _buildHeroHeader(),
                         ),
 
-                        _buildGroupDivider(),
+                        const SizedBox(height: 34),
 
-                        _buildTile(
-                          icon: Icons.calculate_outlined,
-                          title: 'طريقة حساب الصلاة',
-                          subtitle: 'الهيئة المصرية العامة للمساحة',
-                          trailing: _buildArrow(),
-                          onTap: () {},
-                        ),
-
-                        _buildGroupDivider(),
-
-                        _buildTile(
-                          icon: Icons.notifications_active_outlined,
-                          title: 'إشعارات الصلاة',
-                          subtitle: settingsState.prayerNotificationsEnabled
-                              ? 'إشعارات أوقات الصلاة مفعلة'
-                              : 'إشعارات أوقات الصلاة متوقفة',
-                          trailing: Switch.adaptive(
-                            value: settingsState.prayerNotificationsEnabled,
-                            activeTrackColor: _gold,
-                            onChanged: isLoading
-                                ? null
-                                : (value) {
-                                    context
-                                        .read<SettingsCubit>()
-                                        .togglePrayerNotifications(value);
-                                  },
+                        _animatedSection(
+                          slide: _appearanceAnimation,
+                          child: Column(
+                            children: [
+                              _buildSectionHeader(
+                                icon: Icons.palette_outlined,
+                                title: 'المظهر',
+                                subtitle: 'خصّص شكل التطبيق',
+                              ),
+                              const SizedBox(height: 12),
+                              _buildThemeTile(),
+                            ],
                           ),
                         ),
 
-                        _buildGroupDivider(),
+                        const SizedBox(height: 34),
 
-                        _buildTile(
-                          icon: Icons.volume_up_rounded,
-                          title: 'الأذان الصوتي',
-                          subtitle: settingsState.adhanEnabled
-                              ? 'تشغيل الأذان كاملًا في أوقات الصلاة'
-                              : 'تشغيل الأذان الصوتي متوقف',
-                          trailing: Switch.adaptive(
-                            value: settingsState.adhanEnabled,
-                            activeTrackColor: _gold,
-                            onChanged: isLoading
-                                ? null
-                                : (value) {
-                                    context.read<SettingsCubit>().toggleAdhan(
-                                      value,
-                                    );
-                                  },
+                        _animatedSection(
+                          slide: _prayerAnimation,
+                          child: Column(
+                            children: [
+                              _buildSectionHeader(
+                                icon: Icons.mosque_outlined,
+                                title: 'الصلاة',
+                                subtitle: 'إعدادات مواقيت الصلاة',
+                              ),
+                              const SizedBox(height: 12),
+                              _buildSettingsGroup(
+                                children: [
+                                  _buildTile(
+                                    icon: Icons.location_on_outlined,
+                                    title: 'الموقع الحالي',
+                                    subtitle: 'القاهرة، مصر',
+                                    trailing: _buildArrow(),
+                                    onTap: () {},
+                                  ),
+
+                                  _buildGroupDivider(),
+
+                                  _buildTile(
+                                    icon: Icons.calculate_outlined,
+                                    title: 'طريقة حساب الصلاة',
+                                    subtitle: 'الهيئة المصرية العامة للمساحة',
+                                    trailing: _buildArrow(),
+                                    onTap: () {},
+                                  ),
+
+                                  _buildGroupDivider(),
+
+                                  _buildTile(
+                                    icon: Icons.notifications_active_outlined,
+                                    title: 'إشعارات الصلاة',
+                                    subtitle:
+                                    settingsState.prayerNotificationsEnabled
+                                        ? 'إشعارات أوقات الصلاة مفعلة'
+                                        : 'إشعارات أوقات الصلاة متوقفة',
+                                    trailing: Switch.adaptive(
+                                      value:
+                                      settingsState.prayerNotificationsEnabled,
+                                      activeTrackColor: _gold,
+                                      onChanged: isLoading
+                                          ? null
+                                          : (value) {
+                                        context
+                                            .read<SettingsCubit>()
+                                            .togglePrayerNotifications(
+                                          value,
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  _buildGroupDivider(),
+
+                                  _buildTile(
+                                    icon: Icons.volume_up_rounded,
+                                    title: 'الأذان الصوتي',
+                                    subtitle: settingsState.adhanEnabled
+                                        ? 'تشغيل الأذان كاملًا في أوقات الصلاة'
+                                        : 'تشغيل الأذان الصوتي متوقف',
+                                    trailing: Switch.adaptive(
+                                      value: settingsState.adhanEnabled,
+                                      activeTrackColor: _gold,
+                                      onChanged: isLoading
+                                          ? null
+                                          : (value) {
+                                        context
+                                            .read<SettingsCubit>()
+                                            .toggleAdhan(value);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
+                        ),
+
+                        const SizedBox(height: 34),
+
+                        _animatedSection(
+                          slide: _applicationAnimation,
+                          child: Column(
+                            children: [
+                              _buildSectionHeader(
+                                icon: Icons.apps_rounded,
+                                title: 'التطبيق',
+                                subtitle: 'معلومات وإعدادات التطبيق',
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              _buildSettingsGroup(
+                                children: [
+                                  _buildTile(
+                                    icon: Icons.notifications_none_rounded,
+                                    title: 'إشعارات الأذكار',
+                                    subtitle:
+                                    settingsState.azkarNotificationsEnabled
+                                        ? 'تذكيرات الأذكار اليومية مفعلة'
+                                        : 'تذكيرات الأذكار اليومية متوقفة',
+                                    trailing: Switch.adaptive(
+                                      value:
+                                      settingsState.azkarNotificationsEnabled,
+                                      activeTrackColor: _gold,
+                                      onChanged: isLoading
+                                          ? null
+                                          : (value) {
+                                        context
+                                            .read<SettingsCubit>()
+                                            .toggleAzkarNotifications(
+                                          value,
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  _buildGroupDivider(),
+
+                                  _buildTile(
+                                    icon: Icons.favorite_rounded,
+                                    title: 'الصلاة على النبي ﷺ',
+                                    subtitle:
+                                    settingsState.salawatNotificationsEnabled
+                                        ? 'تذكيرات الصلاة على النبي مفعلة'
+                                        : 'تذكيرات الصلاة على النبي متوقفة',
+                                    trailing: Switch.adaptive(
+                                      value:
+                                      settingsState.salawatNotificationsEnabled,
+                                      activeTrackColor: _gold,
+                                      onChanged: isLoading
+                                          ? null
+                                          : (value) async {
+                                        await context
+                                            .read<SettingsCubit>()
+                                            .toggleSalawatNotifications(
+                                          value,
+                                        );
+
+                                        if (value) {
+                                          await _refreshSalawatCountdown();
+                                        } else if (mounted) {
+                                          setState(() {});
+                                        }
+                                      },
+                                    ),
+                                  ),
+
+                                  if (settingsState.salawatNotificationsEnabled)
+                                    Padding(
+                                      padding:
+                                      const EdgeInsetsDirectional.only(
+                                        start: 12,
+                                        end: 12,
+                                        top: 4,
+                                        bottom: 10,
+                                      ),
+                                      child: _buildSalawatCountdown(),
+                                    ),
+
+                                  _buildGroupDivider(),
+
+                                  _buildTile(
+                                    icon: Icons.library_music_outlined,
+                                    title: 'المكتبة الصوتية',
+                                    subtitle: 'إدارة تسجيلات القرآن والأذان',
+                                    trailing: _buildArrow(),
+                                    onTap: _openAudioLibrary,
+                                  ),
+
+                                  _buildGroupDivider(),
+
+                                  _buildTile(
+                                    icon: Icons.info_outline_rounded,
+                                    title: 'عن زاد',
+                                    subtitle: 'معلومات عن التطبيق',
+                                    trailing: _buildArrow(),
+                                    onTap: () => _showAboutDialog(context),
+                                  ),
+
+                                  _buildGroupDivider(),
+
+                                  _buildTile(
+                                    icon: Icons.verified_outlined,
+                                    title: 'الإصدار',
+                                    subtitle: '1.0.0',
+                                    trailing: _buildVersionBadge(),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        _animatedSection(
+                          slide: _footerAnimation,
+                          child: _buildFooter(),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 34),
-
-              _animatedSection(
-                slide: _applicationAnimation,
-                child: Column(
-                  children: [
-                    _buildSectionHeader(
-                      icon: Icons.apps_rounded,
-                      title: 'التطبيق',
-                      subtitle: 'معلومات وإعدادات التطبيق',
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    _buildSettingsGroup(
-                      children: [
-                        _buildTile(
-                          icon: Icons.notifications_none_rounded,
-                          title: 'إشعارات الأذكار',
-                          subtitle: settingsState.azkarNotificationsEnabled
-                              ? 'تذكيرات الأذكار اليومية مفعلة'
-                              : 'تذكيرات الأذكار اليومية متوقفة',
-                          trailing: Switch.adaptive(
-                            value: settingsState.azkarNotificationsEnabled,
-                            activeTrackColor: _gold,
-                            onChanged: isLoading
-                                ? null
-                                : (value) {
-                                    context
-                                        .read<SettingsCubit>()
-                                        .toggleAzkarNotifications(value);
-                                  },
-                          ),
-                        ),
-
-                        _buildGroupDivider(),
-
-                        _buildTile(
-                          icon: Icons.favorite_rounded,
-                          title: 'الصلاة على النبي ﷺ',
-                          subtitle: settingsState.salawatNotificationsEnabled
-                              ? 'تذكيرات الصلاة على النبي مفعلة'
-                              : 'تذكيرات الصلاة على النبي متوقفة',
-                          trailing: Switch.adaptive(
-                            value: settingsState.salawatNotificationsEnabled,
-                            activeTrackColor: _gold,
-                            onChanged: isLoading
-                                ? null
-                                : (value) async {
-                                    await context
-                                        .read<SettingsCubit>()
-                                        .toggleSalawatNotifications(value);
-
-                                    if (value) {
-                                      await _refreshSalawatCountdown();
-                                    } else if (mounted) {
-                                      setState(() {});
-                                    }
-                                  },
-                          ),
-                        ),
-
-                        if (settingsState.salawatNotificationsEnabled)
-                          Padding(
-                            padding: const EdgeInsetsDirectional.only(
-                              start: 12,
-                              end: 12,
-                              top: 4,
-                              bottom: 10,
-                            ),
-                            child: _buildSalawatCountdown(),
-                          ),
-
-                        _buildGroupDivider(),
-
-                        _buildTile(
-                          icon: Icons.library_music_outlined,
-                          title: 'المكتبة الصوتية',
-                          subtitle: 'إدارة تسجيلات القرآن والأذان',
-                          trailing: _buildArrow(),
-                          onTap: _openAudioLibrary,
-                        ),
-
-                        _buildGroupDivider(),
-
-                        _buildTile(
-                          icon: Icons.info_outline_rounded,
-                          title: 'عن زاد',
-                          subtitle: 'معلومات عن التطبيق',
-                          trailing: _buildArrow(),
-                          onTap: () => _showAboutDialog(context),
-                        ),
-
-                        _buildGroupDivider(),
-
-                        _buildTile(
-                          icon: Icons.verified_outlined,
-                          title: 'الإصدار',
-                          subtitle: '1.0.0',
-                          trailing: _buildVersionBadge(),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              _animatedSection(slide: _footerAnimation, child: _buildFooter()),
-            ],
+              ],
+            ),
           ),
         );
       },

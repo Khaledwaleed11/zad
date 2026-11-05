@@ -8,10 +8,12 @@ class QuranAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return AppBar(
-      backgroundColor: colors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      surfaceTintColor: Colors.transparent,
       foregroundColor: colors.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -26,9 +28,7 @@ class QuranAppBar extends StatelessWidget implements PreferredSizeWidget {
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.3),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
             ),
             child: Icon(
               Icons.menu_book_rounded,
@@ -76,7 +76,6 @@ class QuranAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-
     );
   }
 }

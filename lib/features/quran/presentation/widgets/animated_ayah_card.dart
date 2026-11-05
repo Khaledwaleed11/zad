@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class AnimatedAyahCard extends StatelessWidget {
@@ -20,8 +19,10 @@ class AnimatedAyahCard extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
-        final double value = ((controller.value - delay) / (1 - delay))
-            .clamp(0.0, 1.0);
+        final double value = ((controller.value - delay) / (1 - delay)).clamp(
+          0.0,
+          1.0,
+        );
 
         final curved = Curves.easeOutCubic.transform(value);
 

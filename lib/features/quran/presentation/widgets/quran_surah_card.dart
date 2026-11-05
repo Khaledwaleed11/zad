@@ -6,11 +6,7 @@ class QuranSurahCard extends StatelessWidget {
   final SurahEntity surah;
   final VoidCallback onTap;
 
-  const QuranSurahCard({
-    super.key,
-    required this.surah,
-    required this.onTap,
-  });
+  const QuranSurahCard({super.key, required this.surah, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +32,7 @@ class QuranSurahCard extends StatelessWidget {
             width: 0.7,
           ),
         ),
-        child: SurahItem(
-          surah: surah,
-          onTap: onTap,
-        ),
+        child: SurahItem(surah: surah, onTap: onTap),
       ),
     );
   }

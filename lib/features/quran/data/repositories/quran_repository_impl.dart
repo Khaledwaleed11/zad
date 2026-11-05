@@ -1,4 +1,3 @@
-
 import '../../domain/entities/quran_ayah_entity.dart';
 import '../../domain/entities/surah_entity.dart';
 import '../../domain/entities/reciter_entity.dart';
@@ -11,9 +10,7 @@ import '../models/reciter_model.dart';
 class QuranRepositoryImpl implements QuranRepository {
   final QuranRemoteDataSource remoteDataSource;
 
-  QuranRepositoryImpl({
-    required this.remoteDataSource,
-  });
+  QuranRepositoryImpl({required this.remoteDataSource});
 
   @override
   Future<QuranAyahEntity> getRandomAyah() async {
@@ -25,9 +22,7 @@ class QuranRepositoryImpl implements QuranRepository {
       throw Exception('Invalid random ayah response');
     }
 
-    final model = QuranAyahModel.fromJson(
-      Map<String, dynamic>.from(data),
-    );
+    final model = QuranAyahModel.fromJson(Map<String, dynamic>.from(data));
 
     return model.toEntity();
   }
@@ -45,17 +40,14 @@ class QuranRepositoryImpl implements QuranRepository {
     return data
         .whereType<Map>()
         .map(
-          (surah) => SurahModel.fromJson(
-        Map<String, dynamic>.from(surah),
-      ).toEntity(),
-    )
+          (surah) =>
+              SurahModel.fromJson(Map<String, dynamic>.from(surah)).toEntity(),
+        )
         .toList();
   }
 
   @override
-  Future<List<QuranAyahEntity>> getSurahAyahs(
-      int surahNumber,
-      ) async {
+  Future<List<QuranAyahEntity>> getSurahAyahs(int surahNumber) async {
     final response = await remoteDataSource.getSurah(surahNumber);
 
     final data = response['data'];
@@ -66,9 +58,7 @@ class QuranRepositoryImpl implements QuranRepository {
 
     final ayahs = data['ayahs'] as List;
 
-    return ayahs
-        .whereType<Map>()
-        .map((ayah) {
+    return ayahs.whereType<Map>().map((ayah) {
       final ayahJson = Map<String, dynamic>.from(ayah);
 
       // ضمان وجود بيانات السورة لكل آية.
@@ -79,8 +69,7 @@ class QuranRepositoryImpl implements QuranRepository {
       };
 
       return QuranAyahModel.fromJson(ayahJson).toEntity();
-    })
-        .toList();
+    }).toList();
   }
 
   @override

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/surah_entity.dart';
@@ -143,10 +142,10 @@ class SurahHeader extends StatelessWidget {
   }
 
   Widget _buildDecoration(
-      ColorScheme colors, {
-        IconData icon = Icons.auto_awesome,
-        double iconSize = 17,
-      }) {
+    ColorScheme colors, {
+    IconData icon = Icons.auto_awesome,
+    double iconSize = 17,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -173,10 +172,7 @@ class _SurahInfoChip extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _SurahInfoChip({
-    required this.icon,
-    required this.text,
-  });
+  const _SurahInfoChip({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -187,9 +183,7 @@ class _SurahInfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,7 +15,10 @@ import '../widgets/azkar_state_views.dart';
 class AzkarScreen extends StatefulWidget {
   final String initialCategory;
 
-  const AzkarScreen({super.key, this.initialCategory = 'morning'});
+  const AzkarScreen({
+    super.key,
+    this.initialCategory = 'morning',
+  });
 
   @override
   State<AzkarScreen> createState() => _AzkarScreenState();
@@ -48,18 +52,32 @@ class _AzkarScreenState extends State<AzkarScreen>
     );
 
     _headerSlide =
-        Tween<Offset>(begin: const Offset(0, -0.08), end: Offset.zero).animate(
+        Tween<Offset>(
+          begin: const Offset(0, -0.08),
+          end: Offset.zero,
+        ).animate(
           CurvedAnimation(
             parent: _pageController,
-            curve: const Interval(0.00, 0.35, curve: Curves.easeOutCubic),
+            curve: const Interval(
+              0.00,
+              0.35,
+              curve: Curves.easeOutCubic,
+            ),
           ),
         );
 
-    _chipsSlide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
-        .animate(
+    _chipsSlide =
+        Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(
           CurvedAnimation(
             parent: _pageController,
-            curve: const Interval(0.20, 0.55, curve: Curves.easeOutCubic),
+            curve: const Interval(
+              0.20,
+              0.55,
+              curve: Curves.easeOutCubic,
+            ),
           ),
         );
 
@@ -94,7 +112,10 @@ class _AzkarScreenState extends State<AzkarScreen>
     }
 
     return allAzkar
-        .where((zekr) => !zekr.isCustom && zekr.category == selectedCategory)
+        .where(
+          (zekr) =>
+      !zekr.isCustom && zekr.category == selectedCategory,
+    )
         .toList();
   }
 
@@ -110,7 +131,10 @@ class _AzkarScreenState extends State<AzkarScreen>
     _categoryController.forward(from: 0);
   }
 
-  Future<void> _showAzkarForm(BuildContext context, {AzkarEntity? zekr}) async {
+  Future<void> _showAzkarForm(
+      BuildContext context, {
+        AzkarEntity? zekr,
+      }) async {
     final result = await showDialog<AzkarEntity>(
       context: context,
       builder: (_) => AzkarFormDialog(zekr: zekr),
@@ -130,15 +154,17 @@ class _AzkarScreenState extends State<AzkarScreen>
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(zekr == null ? 'تمت إضافة الذكر' : 'تم تعديل الذكر'),
+        content: Text(
+          zekr == null ? 'تمت إضافة الذكر' : 'تم تعديل الذكر',
+        ),
       ),
     );
   }
 
   Future<void> _confirmDeleteAzkar(
-    BuildContext context,
-    AzkarEntity zekr,
-  ) async {
+      BuildContext context,
+      AzkarEntity zekr,
+      ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
@@ -147,14 +173,16 @@ class _AzkarScreenState extends State<AzkarScreen>
           content: const Text('هل أنت متأكد من حذف هذا الذكر؟'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
+              onPressed: () =>
+                  Navigator.pop(dialogContext, false),
               child: const Text('إلغاء'),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
-              onPressed: () => Navigator.pop(dialogContext, true),
+              onPressed: () =>
+                  Navigator.pop(dialogContext, true),
               child: const Text('حذف'),
             ),
           ],
@@ -168,9 +196,9 @@ class _AzkarScreenState extends State<AzkarScreen>
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('تم حذف الذكر')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تم حذف الذكر')),
+    );
   }
 
   String getCategoryTitle() {
@@ -203,6 +231,55 @@ class _AzkarScreenState extends State<AzkarScreen>
     }
   }
 
+  // Scrollable AppBar
+  Widget _buildSliverAppBar(BuildContext context) {
+    return SliverAppBar(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      pinned: false,
+      floating: false,
+      automaticallyImplyLeading: false,
+      centerTitle: true,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFA88746).withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFD6BE83),
+              ),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              size: 19,
+              color: Color(0xFFA88746),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            'الأذكار',
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          onPressed: () => _showAzkarForm(context),
+          tooltip: 'إضافة ذكر',
+          icon: const Icon(Icons.add_rounded),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -212,44 +289,6 @@ class _AzkarScreenState extends State<AzkarScreen>
       create: (_) => sl<AzkarCubit>()..loadAzkar(),
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: true,
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFA88746).withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFD6BE83)),
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 19,
-                  color: Color(0xFFA88746),
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                'الأذكار',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
-              ),
-            ],
-          ),
-          actions: [
-            Builder(
-              builder: (context) => IconButton(
-                onPressed: () => _showAzkarForm(context),
-                tooltip: 'إضافة ذكر',
-                icon: const Icon(Icons.add_rounded),
-              ),
-            ),
-          ],
-        ),
         body: BlocConsumer<AzkarCubit, AzkarState>(
           listener: (context, state) {
             if (state.status == AzkarStatus.success) {
@@ -266,19 +305,38 @@ class _AzkarScreenState extends State<AzkarScreen>
   }
 
   Widget _buildBody(
-    BuildContext context,
-    ColorScheme colors,
-    AzkarState state,
-  ) {
+      BuildContext context,
+      ColorScheme colors,
+      AzkarState state,
+      ) {
     if (state.status == AzkarStatus.initial ||
         state.status == AzkarStatus.loading) {
-      return AzkarLoadingView(colors: colors);
+      return CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildSliverAppBar(context),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: AzkarLoadingView(colors: colors),
+          ),
+        ],
+      );
     }
 
     if (state.status == AzkarStatus.failure) {
-      return AzkarErrorView(
-        colors: colors,
-        onRetry: () => context.read<AzkarCubit>().loadAzkar(),
+      return CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildSliverAppBar(context),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: AzkarErrorView(
+              colors: colors,
+              onRetry: () =>
+                  context.read<AzkarCubit>().loadAzkar(),
+            ),
+          ),
+        ],
       );
     }
 
@@ -287,6 +345,8 @@ class _AzkarScreenState extends State<AzkarScreen>
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
+        _buildSliverAppBar(context),
+
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
@@ -299,11 +359,14 @@ class _AzkarScreenState extends State<AzkarScreen>
                     position: _headerSlide,
                     child: AzkarHeader(
                       categoryTitle: getCategoryTitle(),
-                      categoryDescription: getCategoryDescription(),
+                      categoryDescription:
+                      getCategoryDescription(),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 18),
+
                 FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
@@ -314,7 +377,9 @@ class _AzkarScreenState extends State<AzkarScreen>
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   switchInCurve: Curves.easeOutCubic,
@@ -358,11 +423,13 @@ class _AzkarScreenState extends State<AzkarScreen>
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 14),
               ],
             ),
           ),
         ),
+
         if (azkar.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
@@ -374,8 +441,10 @@ class _AzkarScreenState extends State<AzkarScreen>
             sliver: AzkarList(
               azkar: azkar,
               selectedCategory: selectedCategory,
-              onEdit: (zekr) => _showAzkarForm(context, zekr: zekr),
-              onDelete: (zekr) => _confirmDeleteAzkar(context, zekr),
+              onEdit: (zekr) =>
+                  _showAzkarForm(context, zekr: zekr),
+              onDelete: (zekr) =>
+                  _confirmDeleteAzkar(context, zekr),
             ),
           ),
       ],

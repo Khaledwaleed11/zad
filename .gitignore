@@ -56,3 +56,5 @@ key.properties
 # Service account credentials
 service-account*.json
 *-service-account*.json
+# Widget Preview related
+.widget_preview/

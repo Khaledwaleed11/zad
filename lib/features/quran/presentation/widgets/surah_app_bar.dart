@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/surah_entity.dart';
@@ -7,21 +6,19 @@ class SurahAppBar extends StatelessWidget implements PreferredSizeWidget {
   final SurahEntity surah;
   final VoidCallback onRefresh;
 
-  const SurahAppBar({
-    super.key,
-    required this.surah,
-    required this.onRefresh,
-  });
+  const SurahAppBar({super.key, required this.surah, required this.onRefresh});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return AppBar(
-      backgroundColor: colors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      surfaceTintColor: Colors.transparent,
       foregroundColor: colors.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -52,10 +49,7 @@ class SurahAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           onPressed: onRefresh,
           tooltip: 'تحديث',
-          icon: Icon(
-            Icons.refresh_rounded,
-            color: colors.primary,
-          ),
+          icon: Icon(Icons.refresh_rounded, color: colors.primary),
         ),
       ],
     );

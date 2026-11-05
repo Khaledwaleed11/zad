@@ -38,37 +38,42 @@ class QuranCubit extends Cubit<QuranState> {
     _ownsAudio = ownsAudio;
     _listenToAudio();
   }
+
   void _listenToAudio() {
-    _playerStateSubscription =
-        audioDataSource.playerStateStream.listen((playerState) {
-          if (isClosed) return;
+    _playerStateSubscription = audioDataSource.playerStateStream.listen((
+      playerState,
+    ) {
+      if (isClosed) return;
 
-          final status = switch (playerState.processingState) {
-            ProcessingState.idle => QuranAudioStatus.initial,
-            ProcessingState.loading => QuranAudioStatus.loading,
-            ProcessingState.buffering => playerState.playing
-                ? QuranAudioStatus.playing
-                : QuranAudioStatus.loading,
-            ProcessingState.completed => QuranAudioStatus.completed,
-            ProcessingState.ready => playerState.playing
-                ? QuranAudioStatus.playing
-                : QuranAudioStatus.paused,
-          };
+      final status = switch (playerState.processingState) {
+        ProcessingState.idle => QuranAudioStatus.initial,
+        ProcessingState.loading => QuranAudioStatus.loading,
+        ProcessingState.buffering =>
+          playerState.playing
+              ? QuranAudioStatus.playing
+              : QuranAudioStatus.loading,
+        ProcessingState.completed => QuranAudioStatus.completed,
+        ProcessingState.ready =>
+          playerState.playing
+              ? QuranAudioStatus.playing
+              : QuranAudioStatus.paused,
+      };
 
-          emit(state.copyWith(audioStatus: status));
-        });
+      emit(state.copyWith(audioStatus: status));
+    });
 
-    _currentAyahSubscription =
-        audioDataSource.currentAyahNumberStream.listen((ayahNumber) {
-          if (isClosed) return;
-          print('CUBIT RECEIVED AYAH: $ayahNumber');
-          emit(
-            state.copyWith(
-              currentAyahNumber: ayahNumber,
-              clearCurrentAyahNumber: ayahNumber == null,
-            ),
-          );
-        });
+    _currentAyahSubscription = audioDataSource.currentAyahNumberStream.listen((
+      ayahNumber,
+    ) {
+      if (isClosed) return;
+      print('CUBIT RECEIVED AYAH: $ayahNumber');
+      emit(
+        state.copyWith(
+          currentAyahNumber: ayahNumber,
+          clearCurrentAyahNumber: ayahNumber == null,
+        ),
+      );
+    });
   }
 
   // Random Ayah
@@ -105,10 +110,7 @@ class QuranCubit extends Cubit<QuranState> {
 
   Future<void> loadSurahs() async {
     emit(
-      state.copyWith(
-        surahsStatus: QuranRequestStatus.loading,
-        surahsError: '',
-      ),
+      state.copyWith(surahsStatus: QuranRequestStatus.loading, surahsError: ''),
     );
 
     try {
@@ -178,10 +180,8 @@ class QuranCubit extends Cubit<QuranState> {
       }
 
       final settingsBox = Hive.box(StorageConstants.settingsBox);
-      final savedIdentifier = settingsBox.get(
-        _reciterKey,
-        defaultValue: '',
-      ) as String;
+      final savedIdentifier =
+          settingsBox.get(_reciterKey, defaultValue: '') as String;
 
       ReciterEntity? selectedReciter;
 
@@ -194,10 +194,7 @@ class QuranCubit extends Cubit<QuranState> {
       }
 
       // استعادة القارئ المحفوظ.
-      selectedReciter ??= _findReciter(
-        reciters,
-        savedIdentifier,
-      );
+      selectedReciter ??= _findReciter(reciters, savedIdentifier);
 
       // اختيار أول قارئ عند عدم وجود اختيار صالح.
       selectedReciter ??= reciters.first;
@@ -207,10 +204,7 @@ class QuranCubit extends Cubit<QuranState> {
 
       // تحديث الاختيار المحفوظ.
       if (savedIdentifier != selectedReciter.identifier) {
-        await settingsBox.put(
-          _reciterKey,
-          selectedReciter.identifier,
-        );
+        await settingsBox.put(_reciterKey, selectedReciter.identifier);
       }
 
       emit(
@@ -231,10 +225,7 @@ class QuranCubit extends Cubit<QuranState> {
     }
   }
 
-  ReciterEntity? _findReciter(
-      List<ReciterEntity> reciters,
-      String identifier,
-      ) {
+  ReciterEntity? _findReciter(List<ReciterEntity> reciters, String identifier) {
     for (final reciter in reciters) {
       if (reciter.identifier == identifier) {
         return reciter;
@@ -261,10 +252,9 @@ class QuranCubit extends Cubit<QuranState> {
         ),
       );
 
-      await Hive.box(StorageConstants.settingsBox).put(
-        _reciterKey,
-        reciter.identifier,
-      );
+      await Hive.box(
+        StorageConstants.settingsBox,
+      ).put(_reciterKey, reciter.identifier);
     } catch (e) {
       emit(
         state.copyWith(
@@ -280,14 +270,11 @@ class QuranCubit extends Cubit<QuranState> {
   Future<void> toggleAyahAudio(int ayahNumber) async {
     try {
       final ayah = state.surahAyahs.firstWhere(
-            (item) => item.number == ayahNumber,
+        (item) => item.number == ayahNumber,
       );
 
       emit(
-        state.copyWith(
-          audioStatus: QuranAudioStatus.loading,
-          audioError: '',
-        ),
+        state.copyWith(audioStatus: QuranAudioStatus.loading, audioError: ''),
       );
 
       await audioDataSource.toggleAyah(ayah);
@@ -301,17 +288,12 @@ class QuranCubit extends Cubit<QuranState> {
     }
   }
 
-  Future<void> playSurahAudio(
-      List<QuranAyahEntity> ayahs,
-      ) async {
+  Future<void> playSurahAudio(List<QuranAyahEntity> ayahs) async {
     if (ayahs.isEmpty) return;
 
     try {
       emit(
-        state.copyWith(
-          audioStatus: QuranAudioStatus.loading,
-          audioError: '',
-        ),
+        state.copyWith(audioStatus: QuranAudioStatus.loading, audioError: ''),
       );
 
       await audioDataSource.playSurah(ayahs);

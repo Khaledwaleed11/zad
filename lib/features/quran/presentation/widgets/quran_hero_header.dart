@@ -24,9 +24,7 @@ class QuranHeroHeader extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(17),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.25),
-          ),
+          border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [

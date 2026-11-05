@@ -30,14 +30,11 @@ class _PrayerTimesView extends StatefulWidget {
 class _PrayerTimesViewState extends State<_PrayerTimesView>
     with TickerProviderStateMixin {
   Timer? countdownTimer;
-
   String nextPrayerName = '';
   String nextPrayerTime = '';
   Duration remainingTime = Duration.zero;
-
   late AnimationController _pageController;
   late AnimationController _pulseController;
-
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
@@ -237,16 +234,20 @@ class _PrayerTimesViewState extends State<_PrayerTimesView>
       builder: (context, state) {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          appBar: _buildAppBar(context, colors),
-          body: _buildBody(context, colors, state),
+          body: SafeArea(
+            bottom: false,
+            child: _buildBody(context, colors, state),
+          ),
         );
       },
     );
   }
 
+  // AppBar
+
   PreferredSizeWidget _buildAppBar(BuildContext context, ColorScheme colors) {
     return AppBar(
-      backgroundColor: colors.surface,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       foregroundColor: colors.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -318,6 +319,8 @@ class _PrayerTimesViewState extends State<_PrayerTimesView>
     );
   }
 
+  // Main Body
+
   Widget _buildBody(
     BuildContext context,
     ColorScheme colors,
@@ -325,12 +328,16 @@ class _PrayerTimesViewState extends State<_PrayerTimesView>
   ) {
     if (state.status == PrayerTimesStatus.initial ||
         state.status == PrayerTimesStatus.loading) {
-      return _buildLoading(colors);
+      return _buildScrollableState(context, colors, _buildLoading(colors));
     }
 
     if (state.status == PrayerTimesStatus.failure ||
         state.prayerTimes == null) {
-      return _buildError(context, colors);
+      return _buildScrollableState(
+        context,
+        colors,
+        _buildError(context, colors),
+      );
     }
 
     final prayerTimes = state.prayerTimes!;
@@ -348,21 +355,57 @@ class _PrayerTimesViewState extends State<_PrayerTimesView>
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
             children: [
-              _buildHero(colors),
-              const SizedBox(height: 20),
-              _buildNextPrayer(colors),
-              const SizedBox(height: 22),
-              _buildPrayersGrid(colors, prayerTimes),
-              const SizedBox(height: 22),
-              _buildSunInfo(colors, prayerTimes),
-              const SizedBox(height: 18),
-              _buildLocationCard(colors),
+              _buildAppBar(context, colors),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+                child: Column(
+                  children: [
+                    _buildHero(colors),
+                    const SizedBox(height: 20),
+                    _buildNextPrayer(colors),
+                    const SizedBox(height: 22),
+                    _buildPrayersGrid(colors, prayerTimes),
+                    const SizedBox(height: 22),
+                    _buildSunInfo(colors, prayerTimes),
+                    const SizedBox(height: 18),
+                    _buildLocationCard(colors),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  // Scrollable Loading & Error States
+
+  Widget _buildScrollableState(
+    BuildContext context,
+    ColorScheme colors,
+    Widget stateView,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          child: Column(
+            children: [
+              _buildAppBar(context, colors),
+              SizedBox(
+                height: constraints.maxHeight > kToolbarHeight
+                    ? constraints.maxHeight - kToolbarHeight
+                    : MediaQuery.of(context).size.height * 0.7,
+                child: stateView,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

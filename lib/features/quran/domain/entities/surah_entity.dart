@@ -1,4 +1,3 @@
-
 class SurahEntity {
   final int number;
   final String name;

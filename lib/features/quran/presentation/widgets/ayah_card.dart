@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/quran_ayah_entity.dart';
@@ -41,10 +40,8 @@ class AyahCard extends StatelessWidget {
         ? const Color(0xFFC1B18F)
         : const Color(0xFF786548);
 
-    final isPlaying =
-        isCurrentAyah && audioStatus == QuranAudioStatus.playing;
-    final isLoading =
-        isCurrentAyah && audioStatus == QuranAudioStatus.loading;
+    final isPlaying = isCurrentAyah && audioStatus == QuranAudioStatus.playing;
+    final isLoading = isCurrentAyah && audioStatus == QuranAudioStatus.loading;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -73,12 +70,12 @@ class AyahCard extends StatelessWidget {
         child: Stack(
           children: [
             ...[
-               Alignment.topRight,
-               Alignment.topLeft,
-               Alignment.bottomRight,
-               Alignment.bottomLeft,
+              Alignment.topRight,
+              Alignment.topLeft,
+              Alignment.bottomRight,
+              Alignment.bottomLeft,
             ].map(
-                  (alignment) => Align(
+              (alignment) => Align(
                 alignment: alignment,
                 child: Padding(
                   padding: const EdgeInsets.all(7),

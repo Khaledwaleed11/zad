@@ -192,98 +192,110 @@ class _SebhaScreenViewState extends State<_SebhaScreenView>
   Widget _buildScreen(SebhaState state) {
     return Scaffold(
       backgroundColor: _paper,
-      appBar: SebhaAppBar(paper: _paper, gold: _gold, textColor: _textColor),
-      body: FadeTransition(
-        opacity: _pageFade,
+      body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
-          child: Center(
-            child: Container(
-              width: double.infinity,
-              constraints: const BoxConstraints(maxWidth: 700),
-              child: Column(
-                children: [
-                  _animatedSection(
-                    animation: _heroSlide,
-                    child: SebhaHeroHeader(
-                      ambientAnimation: _ambientController,
-                      gold: _gold,
-                      innerPaper: _innerPaper,
-                      lightGold: _lightGold,
-                      mutedColor: _mutedColor,
-                      textColor: _textColor,
+          child: Column(
+            children: [
+              SebhaAppBar(paper: _paper, gold: _gold, textColor: _textColor),
+              FadeTransition(
+                opacity: _pageFade,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
+                  child: Center(
+                    child: Container(
+                      width: double.infinity,
+                      constraints: const BoxConstraints(maxWidth: 700),
+                      child: Column(
+                        children: [
+                          _animatedSection(
+                            animation: _heroSlide,
+                            child: SebhaHeroHeader(
+                              ambientAnimation: _ambientController,
+                              gold: _gold,
+                              innerPaper: _innerPaper,
+                              lightGold: _lightGold,
+                              mutedColor: _mutedColor,
+                              textColor: _textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _animatedSection(
+                            animation: _selectorSlide,
+                            child: Column(
+                              children: [
+                                _buildZikrSelector(state),
+                                const SizedBox(height: 12),
+                                SebhaTargetSelector(
+                                  target: state.target,
+                                  paper: _paper,
+                                  innerPaper: _innerPaper,
+                                  gold: _gold,
+                                  lightGold: _lightGold,
+                                  textColor: _textColor,
+                                  mutedColor: _mutedColor,
+                                  onChanged: changeTarget,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _animatedSection(
+                            animation: _counterSlide,
+                            child: SebhaCurrentZikr(
+                              zikr: state.zikr,
+                              innerPaper: _innerPaper,
+                              gold: _gold,
+                              lightGold: _lightGold,
+                              textColor: _textColor,
+                              mutedColor: _mutedColor,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _animatedSection(
+                            animation: _counterSlide,
+                            child: SebhaCounterArea(
+                              tapAnimation: _tapController,
+                              ambientAnimation: _ambientController,
+                              completionAnimation: _completionController,
+                              isCompleted: state.isCompleted,
+                              count: state.count,
+                              target: state.target,
+                              gold: _gold,
+                              onTap: increment,
+                              onReset: resetCounter,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _animatedSection(
+                            animation: _counterSlide,
+                            child: SebhaProgress(
+                              count: state.count,
+                              target: state.target,
+                              progress: state.progress,
+                              remaining: state.remaining,
+                              isCompleted: state.isCompleted,
+                              gold: _gold,
+                              textColor: _textColor,
+                              mutedColor: _mutedColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _animatedSection(
+                            animation: _counterSlide,
+                            child: SebhaTip(
+                              gold: _gold,
+                              mutedColor: _mutedColor,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  _animatedSection(
-                    animation: _selectorSlide,
-                    child: Column(
-                      children: [
-                        _buildZikrSelector(state),
-                        const SizedBox(height: 12),
-                        SebhaTargetSelector(
-                          target: state.target,
-                          paper: _paper,
-                          innerPaper: _innerPaper,
-                          gold: _gold,
-                          lightGold: _lightGold,
-                          textColor: _textColor,
-                          mutedColor: _mutedColor,
-                          onChanged: changeTarget,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _animatedSection(
-                    animation: _counterSlide,
-                    child: SebhaCurrentZikr(
-                      zikr: state.zikr,
-                      innerPaper: _innerPaper,
-                      gold: _gold,
-                      lightGold: _lightGold,
-                      textColor: _textColor,
-                      mutedColor: _mutedColor,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _animatedSection(
-                    animation: _counterSlide,
-                    child: SebhaCounterArea(
-                      tapAnimation: _tapController,
-                      ambientAnimation: _ambientController,
-                      completionAnimation: _completionController,
-                      isCompleted: state.isCompleted,
-                      count: state.count,
-                      target: state.target,
-                      gold: _gold,
-                      onTap: increment,
-                      onReset: resetCounter,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _animatedSection(
-                    animation: _counterSlide,
-                    child: SebhaProgress(
-                      count: state.count,
-                      target: state.target,
-                      progress: state.progress,
-                      remaining: state.remaining,
-                      isCompleted: state.isCompleted,
-                      gold: _gold,
-                      textColor: _textColor,
-                      mutedColor: _mutedColor,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _animatedSection(
-                    animation: _counterSlide,
-                    child: SebhaTip(gold: _gold, mutedColor: _mutedColor),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

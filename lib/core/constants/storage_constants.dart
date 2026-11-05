@@ -6,4 +6,5 @@ class StorageConstants {
   static const String audioLibraryBox = 'audio_library';
   static const String customAzkarBox = 'custom_azkar';
   static const String salawatScheduleBox = 'salawat_schedule';
+  static const String memorizationTestsBox = 'memorization_tests';
 }

@@ -1,4 +1,3 @@
-
 import '../../domain/entities/quran_ayah_entity.dart';
 
 class QuranAyahModel {
