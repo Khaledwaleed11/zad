@@ -1,7 +1,6 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/entities/hadith_entity.dart';
 import '../../domain/usecases/get_hadith_details.dart';
 import '../../domain/usecases/get_hadith_of_the_day.dart';
 import '../../domain/usecases/get_random_hadith.dart';

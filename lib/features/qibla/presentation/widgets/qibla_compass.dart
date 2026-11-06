@@ -11,87 +11,102 @@ class QiblaCompass extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return SizedBox(
-      width: 300,
-      height: 300,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.maxWidth.isFinite
+            ? math.min(300.0, constraints.maxWidth)
+            : 300.0;
 
-      child: Stack(
-        alignment: Alignment.center,
-
-        children: [
-          Container(
-            width: 300,
-            height: 300,
-
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-
-              color: colors.surface,
-
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.15),
-                width: 2,
-              ),
-
-              boxShadow: [
-                BoxShadow(
-                  color: colors.shadow.withValues(alpha: 0.10),
-                  blurRadius: 25,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-          ),
-
-          AnimatedRotation(
-            turns: rotation / 360,
-            duration: const Duration(milliseconds: 350),
-
-            curve: Curves.easeOut,
-
+        return SizedBox.square(
+          dimension: size,
+          child: FittedBox(
+            fit: BoxFit.contain,
             child: SizedBox(
-              width: 265,
-              height: 265,
+              width: 300,
+              height: 300,
+              child: Stack(
+                alignment: Alignment.center,
 
-              child: CustomPaint(painter: _CompassPainter(colors: colors)),
+                children: [
+                  Container(
+                    width: 300,
+                    height: 300,
+
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+
+                      color: colors.surface,
+
+                      border: Border.all(
+                        color: colors.primary.withValues(alpha: 0.15),
+                        width: 2,
+                      ),
+
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.shadow.withValues(alpha: 0.10),
+                          blurRadius: 25,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  AnimatedRotation(
+                    turns: rotation / 360,
+                    duration: const Duration(milliseconds: 350),
+
+                    curve: Curves.easeOut,
+
+                    child: SizedBox(
+                      width: 265,
+                      height: 265,
+
+                      child: CustomPaint(
+                        painter: _CompassPainter(colors: colors),
+                      ),
+                    ),
+                  ),
+
+                  Container(
+                    width: 72,
+                    height: 72,
+
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+
+                      color: colors.primary,
+
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.primary.withValues(alpha: 0.25),
+                          blurRadius: 18,
+                        ),
+                      ],
+                    ),
+
+                    child: const Icon(
+                      Icons.mosque_rounded,
+                      color: Colors.white,
+                      size: 34,
+                    ),
+                  ),
+
+                  Positioned(
+                    top: 9,
+
+                    child: Icon(
+                      Icons.navigation_rounded,
+                      size: 27,
+                      color: colors.primary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-
-          Container(
-            width: 72,
-            height: 72,
-
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-
-              color: colors.primary,
-
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.25),
-                  blurRadius: 18,
-                ),
-              ],
-            ),
-
-            child: const Icon(
-              Icons.mosque_rounded,
-              color: Colors.white,
-              size: 34,
-            ),
-          ),
-
-          Positioned(
-            top: 9,
-
-            child: Icon(
-              Icons.navigation_rounded,
-              size: 27,
-              color: colors.primary,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

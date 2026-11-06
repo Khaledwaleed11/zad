@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/responsive.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:zad/core/constants/app_constants.dart';
 
@@ -212,16 +213,18 @@ class _SurahScreenState extends State<SurahScreen>
       },
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        body: BlocBuilder<QuranCubit, QuranState>(
-          bloc: quranCubit,
-          buildWhen: (previous, current) {
-            return previous.surahAyahsStatus != current.surahAyahsStatus ||
-                previous.surahAyahs != current.surahAyahs ||
-                previous.surahAyahsError != current.surahAyahsError;
-          },
-          builder: (context, state) {
-            return _buildBody(colors, state);
-          },
+        body: ResponsiveBody(
+          child: BlocBuilder<QuranCubit, QuranState>(
+            bloc: quranCubit,
+            buildWhen: (previous, current) {
+              return previous.surahAyahsStatus != current.surahAyahsStatus ||
+                  previous.surahAyahs != current.surahAyahs ||
+                  previous.surahAyahsError != current.surahAyahsError;
+            },
+            builder: (context, state) {
+              return _buildBody(colors, state);
+            },
+          ),
         ),
       ),
     );

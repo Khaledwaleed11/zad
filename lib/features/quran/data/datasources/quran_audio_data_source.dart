@@ -35,7 +35,7 @@ class QuranAudioDataSource {
       .map((_) => currentAyahNumber)
       .distinct()
       .map((ayahNumber) {
-        print(
+        debugPrint(
           'CURRENT AYAH STREAM: $ayahNumber | '
           'POSITION: ${_audioPlayer.position.inMilliseconds} ms',
         );
@@ -44,10 +44,10 @@ class QuranAudioDataSource {
 
   int? get currentAyahNumber {
     if (kDebugMode) {
-      print('========== AYAH DEBUG ==========');
-      print('Position: ${_audioPlayer.position.inMilliseconds}');
-      print('Timings count: ${_timings.length}');
-      print('Current ayahs count: ${_currentAyahs.length}');
+      debugPrint('========== AYAH DEBUG ==========');
+      debugPrint('Position: ${_audioPlayer.position.inMilliseconds}');
+      debugPrint('Timings count: ${_timings.length}');
+      debugPrint('Current ayahs count: ${_currentAyahs.length}');
     }
 
     if (_currentAyahs.isEmpty || _timings.isEmpty) {
@@ -59,13 +59,13 @@ class QuranAudioDataSource {
     for (final timing in _timings) {
       if (position >= timing.startTime && position < timing.endTime) {
         if (kDebugMode) {
-          print('Current timing ayah: ${timing.ayahNumber}');
+          debugPrint('Current timing ayah: ${timing.ayahNumber}');
         }
 
         for (final ayah in _currentAyahs) {
           if (ayah.numberInSurah == timing.ayahNumber) {
             if (kDebugMode) {
-              print('Current ayah: ${ayah.number}');
+              debugPrint('Current ayah: ${ayah.number}');
             }
 
             return ayah.number;
@@ -75,7 +75,7 @@ class QuranAudioDataSource {
     }
 
     if (kDebugMode) {
-      print('No matching ayah found for position: $position');
+      debugPrint('No matching ayah found for position: $position');
     }
 
     return null;
@@ -98,13 +98,13 @@ class QuranAudioDataSource {
     if (reciter == null) {
       throw Exception('No reciter selected.');
     }
-    print('========== AUDIO DEBUG ==========');
-    print('Reciter: ${reciter.name}');
-    print('Moshaf: ${reciter.moshafName}');
-    print('Moshaf ID: ${reciter.identifier}');
-    print('Surah Number: $surahNumber');
-    print('Surah List: ${reciter.surahList}');
-    print('=================================');
+    debugPrint('========== AUDIO DEBUG ==========');
+    debugPrint('Reciter: ${reciter.name}');
+    debugPrint('Moshaf: ${reciter.moshafName}');
+    debugPrint('Moshaf ID: ${reciter.identifier}');
+    debugPrint('Surah Number: $surahNumber');
+    debugPrint('Surah List: ${reciter.surahList}');
+    debugPrint('=================================');
     if (!reciter.surahList.contains(surahNumber)) {
       throw Exception('This reciter does not support this surah.');
     }
@@ -157,7 +157,7 @@ class QuranAudioDataSource {
     final reciter = _selectedReciter;
 
     if (reciter == null) {
-      print('ERROR: No selected reciter.');
+      debugPrint('ERROR: No selected reciter.');
       return null;
     }
 
@@ -165,20 +165,20 @@ class QuranAudioDataSource {
 
     final selectedUri = Uri.parse(reciter.server);
 
-    print('========== SELECTED RECITER ==========');
-    print('Name: ${reciter.name}');
-    print('Moshaf: ${reciter.moshafName}');
-    print('Server: ${reciter.server}');
-    print('Server URI: $selectedUri');
-    print('Host: ${selectedUri.host}');
-    print('Path: ${selectedUri.path}');
+    debugPrint('========== SELECTED RECITER ==========');
+    debugPrint('Name: ${reciter.name}');
+    debugPrint('Moshaf: ${reciter.moshafName}');
+    debugPrint('Server: ${reciter.server}');
+    debugPrint('Server URI: $selectedUri');
+    debugPrint('Host: ${selectedUri.host}');
+    debugPrint('Path: ${selectedUri.path}');
 
-    print('========== TIMING READS ==========');
+    debugPrint('========== TIMING READS ==========');
 
     for (final read in reads) {
       final folderUrl = read['folder_url']?.toString();
 
-      print(
+      debugPrint(
         'ID: ${read['id']} | '
         'Name: ${read['name']} | '
         'Rewaya: ${read['rewaya']} | '
@@ -202,7 +202,7 @@ class QuranAudioDataSource {
 
       final samePath = selectedPath == timingPath;
 
-      print(
+      debugPrint(
         'Comparing ID ${read['id']}: '
         'sameHost=$sameHost, samePath=$samePath',
       );
@@ -210,34 +210,34 @@ class QuranAudioDataSource {
       if (sameHost && samePath) {
         final readId = int.tryParse(read['id'].toString());
 
-        print('MATCH FOUND: $readId');
+        debugPrint('MATCH FOUND: $readId');
 
         return readId;
       }
     }
 
-    print('ERROR: No matching timing read found.');
+    debugPrint('ERROR: No matching timing read found.');
     return null;
   }
 
   // تحميل توقيت آيات السورة.
   Future<List<_AyahTiming>> _loadAyahTimings(int surahNumber) async {
-    print('========== TIMING LOAD DEBUG ==========');
+    debugPrint('========== TIMING LOAD DEBUG ==========');
 
     final readId = await _getTimingReadId();
 
-    print('Selected read ID: $readId');
-    print('Surah number: $surahNumber');
+    debugPrint('Selected read ID: $readId');
+    debugPrint('Surah number: $surahNumber');
 
     if (readId == null) {
-      print('ERROR: No matching timing read found.');
+      debugPrint('ERROR: No matching timing read found.');
       return [];
     }
 
     final cacheKey = '${readId}_$surahNumber';
 
     if (_timingCache.containsKey(cacheKey)) {
-      print('Using cached timings.');
+      debugPrint('Using cached timings.');
       return _timingCache[cacheKey]!;
     }
 
@@ -248,26 +248,26 @@ class QuranAudioDataSource {
       },
     );
 
-    print('Timing URL: $uri');
+    debugPrint('Timing URL: $uri');
 
     final response = await http.get(uri).timeout(const Duration(seconds: 20));
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
 
     if (response.statusCode != 200) {
-      print('ERROR: Timing request failed.');
+      debugPrint('ERROR: Timing request failed.');
       return [];
     }
 
     final decoded = jsonDecode(response.body);
 
     if (decoded is! List) {
-      print('ERROR: Response is not a List.');
+      debugPrint('ERROR: Response is not a List.');
       return [];
     }
 
-    print('Received timing records: ${decoded.length}');
+    debugPrint('Received timing records: ${decoded.length}');
 
     final timings = decoded
         .whereType<Map>()
@@ -284,8 +284,8 @@ class QuranAudioDataSource {
         )
         .toList();
 
-    print('Valid timings: ${timings.length}');
-    print('========================================');
+    debugPrint('Valid timings: ${timings.length}');
+    debugPrint('========================================');
 
     _timingCache[cacheKey] = timings;
 
@@ -306,8 +306,8 @@ class QuranAudioDataSource {
 
     final timings = await _loadAyahTimings(surahNumber);
 
-    print('TIMINGS COUNT: ${timings.length}');
-    print('FIRST TIMING: ${timings.isNotEmpty ? timings.first : 'EMPTY'}');
+    debugPrint('TIMINGS COUNT: ${timings.length}');
+    debugPrint('FIRST TIMING: ${timings.isNotEmpty ? timings.first : 'EMPTY'}');
 
     await _audioPlayer.setUrl(audioUrl);
 

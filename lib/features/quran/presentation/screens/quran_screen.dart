@@ -6,6 +6,7 @@ import '../cubit/memorization_test_cubit.dart';
 import 'memorization_test_screen.dart';
 import 'memorization_test_setup_screen.dart';
 import '../../../../core/dependency_injection/injection_container.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/surah_entity.dart';
 import '../cubit/quran_cubit.dart';
 import '../cubit/quran_state.dart';
@@ -67,9 +68,8 @@ class _QuranScreenState extends State<QuranScreen>
     final config = await Navigator.push<MemorizationTestConfigEntity>(
       context,
       MaterialPageRoute(
-        builder: (_) => MemorizationTestSetupScreen(
-          surahs: quranCubit.state.surahs,
-        ),
+        builder: (_) =>
+            MemorizationTestSetupScreen(surahs: quranCubit.state.surahs),
       ),
     );
 
@@ -83,8 +83,8 @@ class _QuranScreenState extends State<QuranScreen>
         reverseTransitionDuration: Duration.zero,
         pageBuilder: (context, animation, secondaryAnimation) {
           return BlocProvider(
-            create: (_) => sl<MemorizationTestCubit>()
-              ..startTest(config: config),
+            create: (_) =>
+                sl<MemorizationTestCubit>()..startTest(config: config),
             child: const MemorizationTestScreen(),
           );
         },
@@ -233,66 +233,69 @@ class _QuranScreenState extends State<QuranScreen>
       builder: (context, state) {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          body: RefreshIndicator(
-            onRefresh: loadSurahs,
-            color: colors.primary,
-            backgroundColor: colors.surface,
-            displacement: 45,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                slivers: [
-                  _buildSliverAppBar(context),
+          body: ResponsiveBody(
+            child: RefreshIndicator(
+              onRefresh: loadSurahs,
+              color: colors.primary,
+              backgroundColor: colors.surface,
+              displacement: 45,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  slivers: [
+                    _buildSliverAppBar(context),
 
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const QuranHeroHeader(),
-                          const SizedBox(height: 13),
-                          MemorizationTestBanner(
-                            onTap: openMemorizationTestSetup,
-                          ),
-                          const SizedBox(height: 13),
-                          QuranReciterSelector(
-                            reciterName:
-                                state.selectedReciter?.name ?? 'اختر القارئ',
-                            recitersStatus: state.recitersStatus,
-                            onTap: showRecitersBottomSheet,
-                          ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const QuranHeroHeader(),
+                            const SizedBox(height: 13),
+                            MemorizationTestBanner(
+                              onTap: openMemorizationTestSetup,
+                            ),
+                            const SizedBox(height: 13),
+                            QuranReciterSelector(
+                              reciterName:
+                                  state.selectedReciter?.name ?? 'اختر القارئ',
+                              recitersStatus: state.recitersStatus,
+                              onTap: showRecitersBottomSheet,
+                            ),
 
-                          const SizedBox(height: 15),
+                            const SizedBox(height: 15),
 
-                          QuranSearchField(
-                            controller: searchController,
-                            focusNode: searchFocusNode,
-                            onChanged: filterSurahs,
-                            onClear: clearSearch,
-                          ),
+                            QuranSearchField(
+                              controller: searchController,
+                              focusNode: searchFocusNode,
+                              onChanged: filterSurahs,
+                              onClear: clearSearch,
+                            ),
 
-                          const SizedBox(height: 11),
+                            const SizedBox(height: 11),
 
-                          QuranResultInfo(
-                            resultCount: searchController.text.trim().isNotEmpty
-                                ? filteredSurahs.length
-                                : state.surahs.length,
-                            isSearching: searchController.text
-                                .trim()
-                                .isNotEmpty,
-                            onClear: clearSearch,
-                          ),
-                        ],
+                            QuranResultInfo(
+                              resultCount:
+                                  searchController.text.trim().isNotEmpty
+                                  ? filteredSurahs.length
+                                  : state.surahs.length,
+                              isSearching: searchController.text
+                                  .trim()
+                                  .isNotEmpty,
+                              onClear: clearSearch,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  ..._buildContentSlivers(state),
-                ],
+                    ..._buildContentSlivers(state),
+                  ],
+                ),
               ),
             ),
           ),

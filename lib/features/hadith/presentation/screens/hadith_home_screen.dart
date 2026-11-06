@@ -1,11 +1,12 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/responsive.dart';
 import '../cubit/hadith_cubit.dart';
 import '../cubit/hadith_state.dart';
 import '../widgets/hadith_loading_widget.dart';
 import '../widgets/hadith_of_the_day_card.dart';
+import '../widgets/hadith_screen_headers.dart';
 import '../widgets/hadith_source_info.dart';
 import 'hadith_details_screen.dart';
 import 'hadith_library_screen.dart';
@@ -39,10 +40,7 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
     );
 
     _headerSlide =
-        Tween<Offset>(
-          begin: const Offset(0, -0.08),
-          end: Offset.zero,
-        ).animate(
+        Tween<Offset>(begin: const Offset(0, -0.08), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _pageController,
             curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
@@ -50,10 +48,7 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
         );
 
     _contentSlide =
-        Tween<Offset>(
-          begin: const Offset(0, 0.08),
-          end: Offset.zero,
-        ).animate(
+        Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _pageController,
             curve: const Interval(0.2, 0.65, curve: Curves.easeOutCubic),
@@ -124,9 +119,7 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
             decoration: BoxDecoration(
               color: const Color(0xFFA88746).withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFD6BE83),
-              ),
+              border: Border.all(color: const Color(0xFFD6BE83)),
             ),
             child: const Icon(
               Icons.menu_book_rounded,
@@ -137,10 +130,7 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
           const SizedBox(width: 10),
           const Text(
             'الأحاديث النبوية',
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -161,257 +151,120 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: BlocConsumer<HadithCubit, HadithState>(
-        listener: (context, state) {
-          if (state.hadithOfTheDay != null) {
-            _pageController.forward(from: 0);
-          }
-        },
-        builder: (context, state) {
-          if (state.isLoadingDaily && state.hadithOfTheDay == null) {
+      body: ResponsiveBody(
+        child: BlocConsumer<HadithCubit, HadithState>(
+          listener: (context, state) {
+            if (state.hadithOfTheDay != null) {
+              _pageController.forward(from: 0);
+            }
+          },
+          builder: (context, state) {
+            if (state.isLoadingDaily && state.hadithOfTheDay == null) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildSliverAppBar(context),
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: HadithLoadingWidget(),
+                  ),
+                ],
+              );
+            }
+
+            if (state.errorMessage != null && state.hadithOfTheDay == null) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildSliverAppBar(context),
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildError(colors, state.errorMessage!),
+                  ),
+                ],
+              );
+            }
+
+            final hadith = state.hadithOfTheDay;
+
+            if (hadith == null) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildSliverAppBar(context),
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: SizedBox.shrink(),
+                  ),
+                ],
+              );
+            }
+
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
                 _buildSliverAppBar(context),
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: HadithLoadingWidget(),
-                ),
-              ],
-            );
-          }
-
-          if (state.errorMessage != null &&
-              state.hadithOfTheDay == null) {
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildSliverAppBar(context),
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _buildError(colors, state.errorMessage!),
-                ),
-              ],
-            );
-          }
-
-          final hadith = state.hadithOfTheDay;
-
-          if (hadith == null) {
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildSliverAppBar(context),
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: SizedBox.shrink(),
-                ),
-              ],
-            );
-          }
-
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildSliverAppBar(context),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: SlideTransition(
-                        position: _headerSlide,
-                        child: _buildHeader(context),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: SlideTransition(
-                        position: _contentSlide,
-                        child: Column(
-                          children: [
-                            HadithOfTheDayCard(
-                              hadith: hadith,
-                              isLoading: state.isLoadingDaily,
-                              onAnotherHadith: () {
-                                context
-                                    .read<HadithCubit>()
-                                    .loadAnotherHadith();
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            if (state.errorMessage != null)
-                              _buildInlineError(
-                                colors,
-                                state.errorMessage!,
-                              ),
-                            HadithSourceInfo(
-                              source: hadith.source,
-                              license: hadith.license,
-                              link: hadith.link,
-                            ),
-                            const SizedBox(height: 16),
-                            _buildDetailsButton(
-                              colors,
-                              hadith.book,
-                              hadith.seq,
-                            ),
-                          ],
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _headerSlide,
+                          child: _buildHeader(context),
                         ),
                       ),
-                    ),
-                  ]),
+                      const SizedBox(height: 18),
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _contentSlide,
+                          child: Column(
+                            children: [
+                              HadithOfTheDayCard(
+                                hadith: hadith,
+                                isLoading: state.isLoadingDaily,
+                                onAnotherHadith: () {
+                                  context
+                                      .read<HadithCubit>()
+                                      .loadAnotherHadith();
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              if (state.errorMessage != null)
+                                _buildInlineError(colors, state.errorMessage!),
+                              HadithSourceInfo(
+                                source: hadith.source,
+                                license: hadith.license,
+                                link: hadith.link,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildDetailsButton(
+                                colors,
+                                hadith.book,
+                                hadith.seq,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
-
-    final paper = isDark
-        ? const Color(0xFF252017)
-        : const Color(0xFFF7F1DF);
-
-    final innerPaper = isDark
-        ? const Color(0xFF201B13)
-        : const Color(0xFFFFFCF4);
-
-    final gold = isDark
-        ? const Color(0xFFD6BE83)
-        : const Color(0xFFA88746);
-
-    final lightGold = isDark
-        ? const Color(0xFF806B43)
-        : const Color(0xFFD6BE83);
-
-    final textColor = isDark
-        ? const Color(0xFFF2E8D2)
-        : const Color(0xFF493A25);
-
-    final mutedColor = isDark
-        ? const Color(0xFFC1B18F)
-        : const Color(0xFF786548);
-
-    return Container(
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: paper,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: gold, width: 1.4),
-        boxShadow: [
-          BoxShadow(
-            color: gold.withValues(alpha: 0.10),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: innerPaper,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: lightGold),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 5,
-              right: 5,
-              child: Icon(
-                Icons.auto_awesome,
-                size: 17,
-                color: gold.withValues(alpha: 0.55),
-              ),
-            ),
-            Positioned(
-              top: 5,
-              left: 5,
-              child: Icon(
-                Icons.auto_awesome,
-                size: 17,
-                color: gold.withValues(alpha: 0.55),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(17, 20, 17, 18),
-              child: Row(
-                children: [
-                  Container(
-                    width: 55,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: gold.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: lightGold),
-                    ),
-                    child: Icon(
-                      Icons.auto_stories_rounded,
-                      size: 27,
-                      color: gold,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'من هدي النبي ﷺ',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: mutedColor,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'حديث اليوم',
-                          style: TextStyle(
-                            fontSize: 21,
-                            fontWeight: FontWeight.w900,
-                            color: textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'نور من السنة النبوية يرافق يومك',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: mutedColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 20,
-                    color: gold.withValues(alpha: 0.65),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return const HadithDayHeader();
   }
 
-  Widget _buildDetailsButton(
-      ColorScheme colors,
-      String book,
-      int seq,
-      ) {
+  Widget _buildDetailsButton(ColorScheme colors, String book, int seq) {
     final gold = Theme.of(context).brightness == Brightness.dark
         ? const Color(0xFFD6BE83)
         : const Color(0xFFA88746);
@@ -420,15 +273,11 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: () {
-          _openDetails(
-            'https://bayan.alwa7i.com/api/hadith/$book/$seq',
-          );
+          _openDetails('https://bayan.alwa7i.com/api/hadith/$book/$seq');
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: gold,
-          side: BorderSide(
-            color: gold.withValues(alpha: 0.65),
-          ),
+          side: BorderSide(color: gold.withValues(alpha: 0.65)),
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -443,10 +292,7 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
     );
   }
 
-  Widget _buildInlineError(
-      ColorScheme colors,
-      String message,
-      ) {
+  Widget _buildInlineError(ColorScheme colors, String message) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -458,18 +304,12 @@ class _HadithHomeScreenState extends State<HadithHomeScreen>
       child: Text(
         message,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          color: colors.onErrorContainer,
-          fontSize: 12,
-        ),
+        style: TextStyle(color: colors.onErrorContainer, fontSize: 12),
       ),
     );
   }
 
-  Widget _buildError(
-      ColorScheme colors,
-      String message,
-      ) {
+  Widget _buildError(ColorScheme colors, String message) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),

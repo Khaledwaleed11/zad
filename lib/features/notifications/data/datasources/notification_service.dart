@@ -451,23 +451,6 @@ class NotificationService {
     await _azkarChannel.invokeMethod<void>('showTestAzkarNotification');
   }
 
-  static tz.TZDateTime _nextDailyTime(tz.TZDateTime now, int hour, int minute) {
-    var scheduled = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-
-    if (!scheduled.isAfter(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
-
-    return scheduled;
-  }
-
   static tz.TZDateTime? _buildPrayerDateTime(String time, tz.TZDateTime now) {
     try {
       final parts = time.trim().split(':');

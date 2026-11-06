@@ -67,6 +67,12 @@ import '../../features/notifications/domain/usecases/save_salawat_notifications.
 import '../../features/notifications/domain/usecases/schedule_azkar_notifications.dart';
 import '../../features/notifications/domain/usecases/schedule_prayer_notifications.dart';
 import '../../features/notifications/domain/usecases/schedule_salawat_notifications.dart';
+import '../../features/prophets_stories/data/datasources/prophets_stories_remote_data_source.dart';
+import '../../features/prophets_stories/data/repositories/prophets_stories_repository_impl.dart';
+import '../../features/prophets_stories/domain/repositories/prophets_stories_repository.dart';
+import '../../features/prophets_stories/domain/usecases/get_prophet_story_content.dart';
+import '../../features/prophets_stories/domain/usecases/get_prophet_story_sections.dart';
+import '../../features/prophets_stories/presentation/cubit/prophets_stories_cubit.dart';
 import '../../features/prayer_times/data/datasources/prayer_remote_data_source.dart';
 import '../../features/prayer_times/data/repositories/prayer_repository_impl.dart';
 import '../../features/prayer_times/domain/repositories/prayer_repository.dart';
@@ -158,6 +164,23 @@ Future<void> initDependencies() async {
       getHadithOfTheDayUseCase: sl(),
       getRandomHadithUseCase: sl(),
     ),
+  );
+
+  // ==================== Prophets Stories ====================
+
+  sl.registerLazySingleton<ProphetsStoriesRemoteDataSource>(
+    () => ProphetsStoriesRemoteDataSourceImpl(client: sl()),
+  );
+
+  sl.registerLazySingleton<ProphetsStoriesRepository>(
+    () => ProphetsStoriesRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton(() => GetProphetStorySections(sl()));
+  sl.registerLazySingleton(() => GetProphetStoryContent(sl()));
+
+  sl.registerFactory(
+    () => ProphetsStoriesCubit(getStorySections: sl(), getStoryContent: sl()),
   );
 
   // ==================== Quran ====================

@@ -1,16 +1,14 @@
-
 import 'package:flutter/material.dart';
+import '../../../../core/utils/responsive.dart';
 
 import '../../domain/entities/memorization_test_config_entity.dart';
 import '../../domain/entities/surah_entity.dart';
+import '../widgets/memorization_test_setup_widgets.dart';
 
 class MemorizationTestSetupScreen extends StatefulWidget {
   final List<SurahEntity> surahs;
 
-  const MemorizationTestSetupScreen({
-    super.key,
-    required this.surahs,
-  });
+  const MemorizationTestSetupScreen({super.key, required this.surahs});
 
   @override
   State<MemorizationTestSetupScreen> createState() =>
@@ -27,20 +25,18 @@ class _MemorizationTestSetupScreenState
   static const Color _darkInnerPaper = Color(0xFF201B13);
   static const Color _brown = Color(0xFF493A25);
 
-  bool get _isDark =>
-      Theme.of(context).brightness == Brightness.dark;
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
   Color get _background => _isDark ? _darkPaper : _paper;
   Color get _surface => _isDark ? _darkInnerPaper : _innerPaper;
-  Color get _textColor =>
-      _isDark ? const Color(0xFFF2E8D2) : _brown;
+  Color get _textColor => _isDark ? const Color(0xFFF2E8D2) : _brown;
   Color get _mutedColor =>
       _isDark ? const Color(0xFFC1B18F) : const Color(0xFF786548);
-  Color get _borderColor =>
-      _isDark ? _lightGold.withValues(alpha: 0.25) : _gold.withValues(alpha: 0.25);
+  Color get _borderColor => _isDark
+      ? _lightGold.withValues(alpha: 0.25)
+      : _gold.withValues(alpha: 0.25);
 
-  MemorizationTestScope selectedScope =
-      MemorizationTestScope.fullQuran;
+  MemorizationTestScope selectedScope = MemorizationTestScope.fullQuran;
 
   MemorizationTestDifficulty selectedDifficulty =
       MemorizationTestDifficulty.easy;
@@ -79,7 +75,7 @@ class _MemorizationTestSetupScreenState
     if (number == null) return;
 
     final surah = widget.surahs.firstWhere(
-          (element) => element.number == number,
+      (element) => element.number == number,
     );
 
     setState(() {
@@ -113,8 +109,7 @@ class _MemorizationTestSetupScreenState
                   itemCount: widget.surahs.length,
                   itemBuilder: (context, index) {
                     final surah = widget.surahs[index];
-                    final isSelected =
-                    tempSelection.contains(surah.number);
+                    final isSelected = tempSelection.contains(surah.number);
 
                     return CheckboxListTile(
                       value: isSelected,
@@ -144,10 +139,7 @@ class _MemorizationTestSetupScreenState
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(
-                    'إلغاء',
-                    style: TextStyle(color: _mutedColor),
-                  ),
+                  child: Text('إلغاء', style: TextStyle(color: _mutedColor)),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
@@ -212,8 +204,7 @@ class _MemorizationTestSetupScreenState
         return;
       }
 
-      if (endAyahNumber - startAyahNumber + 1 <
-          selectedQuestionCount) {
+      if (endAyahNumber - startAyahNumber + 1 < selectedQuestionCount) {
         _showMessage('نطاق الآيات أصغر من عدد الأسئلة المختار');
         return;
       }
@@ -224,12 +215,10 @@ class _MemorizationTestSetupScreenState
       difficulty: selectedDifficulty,
       questionCount: selectedQuestionCount,
       surahNumbers: surahNumbers,
-      startAyahNumber:
-      selectedScope == MemorizationTestScope.ayahRange
+      startAyahNumber: selectedScope == MemorizationTestScope.ayahRange
           ? startAyahNumber
           : null,
-      endAyahNumber:
-      selectedScope == MemorizationTestScope.ayahRange
+      endAyahNumber: selectedScope == MemorizationTestScope.ayahRange
           ? endAyahNumber
           : null,
     );
@@ -251,110 +240,112 @@ class _MemorizationTestSetupScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppBar(
-                title: const Text('إعداد اختبار الحفظ'),
-                centerTitle: true,
-                backgroundColor: _background,
-                foregroundColor: _textColor,
-                elevation: 0,
-                iconTheme: const IconThemeData(color: _gold),
-              ),
+      body: ResponsiveBody(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppBar(
+                  title: const Text('إعداد اختبار الحفظ'),
+                  centerTitle: true,
+                  backgroundColor: _background,
+                  foregroundColor: _textColor,
+                  elevation: 0,
+                  iconTheme: const IconThemeData(color: _gold),
+                ),
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 26),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 26),
 
-                    _buildSectionTitle('نطاق الاختبار'),
-                    const SizedBox(height: 12),
+                      _buildSectionTitle('نطاق الاختبار'),
+                      const SizedBox(height: 12),
 
-                    _buildScopeOption(
-                      title: 'القرآن الكريم كاملًا',
-                      subtitle: 'اختبر حفظك في جميع سور القرآن',
-                      icon: Icons.menu_book_rounded,
-                      value: MemorizationTestScope.fullQuran,
-                    ),
-                    _buildScopeOption(
-                      title: 'سورة واحدة',
-                      subtitle: 'اختر سورة لاختبار حفظك فيها',
-                      icon: Icons.auto_stories_rounded,
-                      value: MemorizationTestScope.singleSurah,
-                    ),
-                    _buildScopeOption(
-                      title: 'عدة سور',
-                      subtitle: 'اختر مجموعة من السور',
-                      icon: Icons.library_books_rounded,
-                      value: MemorizationTestScope.multipleSurahs,
-                    ),
-                    _buildScopeOption(
-                      title: 'نطاق من الآيات',
-                      subtitle: 'حدد سورة وبداية ونهاية الآيات',
-                      icon: Icons.format_list_numbered_rounded,
-                      value: MemorizationTestScope.ayahRange,
-                    ),
+                      _buildScopeOption(
+                        title: 'القرآن الكريم كاملًا',
+                        subtitle: 'اختبر حفظك في جميع سور القرآن',
+                        icon: Icons.menu_book_rounded,
+                        value: MemorizationTestScope.fullQuran,
+                      ),
+                      _buildScopeOption(
+                        title: 'سورة واحدة',
+                        subtitle: 'اختر سورة لاختبار حفظك فيها',
+                        icon: Icons.auto_stories_rounded,
+                        value: MemorizationTestScope.singleSurah,
+                      ),
+                      _buildScopeOption(
+                        title: 'عدة سور',
+                        subtitle: 'اختر مجموعة من السور',
+                        icon: Icons.library_books_rounded,
+                        value: MemorizationTestScope.multipleSurahs,
+                      ),
+                      _buildScopeOption(
+                        title: 'نطاق من الآيات',
+                        subtitle: 'حدد سورة وبداية ونهاية الآيات',
+                        icon: Icons.format_list_numbered_rounded,
+                        value: MemorizationTestScope.ayahRange,
+                      ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    if (selectedScope == MemorizationTestScope.singleSurah ||
-                        selectedScope == MemorizationTestScope.ayahRange)
-                      _buildSingleSurahSelector(),
+                      if (selectedScope == MemorizationTestScope.singleSurah ||
+                          selectedScope == MemorizationTestScope.ayahRange)
+                        _buildSingleSurahSelector(),
 
-                    if (selectedScope == MemorizationTestScope.multipleSurahs)
-                      _buildMultipleSurahsSelector(),
+                      if (selectedScope == MemorizationTestScope.multipleSurahs)
+                        _buildMultipleSurahsSelector(),
 
-                    if (selectedScope == MemorizationTestScope.ayahRange)
-                      _buildAyahRangeSelector(),
+                      if (selectedScope == MemorizationTestScope.ayahRange)
+                        _buildAyahRangeSelector(),
 
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    _buildSectionTitle('مستوى الصعوبة'),
-                    const SizedBox(height: 12),
-                    _buildDifficultySelector(),
+                      _buildSectionTitle('مستوى الصعوبة'),
+                      const SizedBox(height: 12),
+                      _buildDifficultySelector(),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    _buildSectionTitle('عدد الأسئلة'),
-                    const SizedBox(height: 12),
-                    _buildQuestionCountSelector(),
+                      _buildSectionTitle('عدد الأسئلة'),
+                      const SizedBox(height: 12),
+                      _buildQuestionCountSelector(),
 
-                    const SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: FilledButton.icon(
-                        onPressed: _startTest,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _gold,
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: FilledButton.icon(
+                          onPressed: _startTest,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _gold,
+                            foregroundColor: Colors.white,
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
-                        ),
-                        icon: const Icon(Icons.play_arrow_rounded),
-                        label: const Text(
-                          'ابدأ الاختبار',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
+                          icon: const Icon(Icons.play_arrow_rounded),
+                          label: const Text(
+                            'ابدأ الاختبار',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -362,80 +353,19 @@ class _MemorizationTestSetupScreenState
   }
 
   Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _borderColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: _gold.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.menu_book_rounded,
-              color: _gold,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'اختبر حفظك للقرآن',
-                  style: TextStyle(
-                    color: _textColor,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'اختر النطاق والمستوى المناسب لك وابدأ رحلتك',
-                  style: TextStyle(
-                    color: _mutedColor,
-                    fontSize: 12,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return MemorizationTestSetupHeader(
+      surface: _surface,
+      gold: _gold,
+      borderColor: _borderColor,
+      textColor: _textColor,
+      mutedColor: _mutedColor,
     );
   }
 
   Widget _buildSectionTitle(String title) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 21,
-          decoration: BoxDecoration(
-            color: _gold,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 9),
-        Text(
-          title,
-          style: TextStyle(
-            color: _textColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
+    return MemorizationTestSetupSectionTitle(
+      title: title,
+      textColor: _textColor,
     );
   }
 
@@ -471,10 +401,7 @@ class _MemorizationTestSetupScreenState
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: _mutedColor,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: _mutedColor, fontSize: 11),
                   ),
                 ],
               ),
@@ -503,9 +430,7 @@ class _MemorizationTestSetupScreenState
         items: widget.surahs.map((surah) {
           return DropdownMenuItem<int>(
             value: surah.number,
-            child: Text(
-              '${surah.name} (${surah.numberOfAyahs} آية)',
-            ),
+            child: Text('${surah.name} (${surah.numberOfAyahs} آية)'),
           );
         }).toList(),
         onChanged: _selectSurah,
@@ -521,10 +446,7 @@ class _MemorizationTestSetupScreenState
         children: [
           Text(
             'تم اختيار ${selectedSurahNumbers.length} سورة',
-            style: TextStyle(
-              color: _mutedColor,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(color: _mutedColor, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -600,10 +522,7 @@ class _MemorizationTestSetupScreenState
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: _mutedColor,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(color: _mutedColor, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<int>(
@@ -681,10 +600,7 @@ class _MemorizationTestSetupScreenState
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: _mutedColor,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: _mutedColor, fontSize: 11),
                   ),
                 ],
               ),
@@ -717,9 +633,7 @@ class _MemorizationTestSetupScreenState
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? _gold.withValues(alpha: 0.13)
-                      : _surface,
+                  color: isSelected ? _gold.withValues(alpha: 0.13) : _surface,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isSelected ? _gold : _borderColor,
@@ -743,34 +657,13 @@ class _MemorizationTestSetupScreenState
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 18),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: _textColor,
-              fontWeight: FontWeight.w900,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 13),
-          child,
-        ],
-      ),
+  Widget _buildSectionCard({required String title, required Widget child}) {
+    return MemorizationTestSetupSectionCard(
+      title: title,
+      surface: _surface,
+      borderColor: _borderColor,
+      textColor: _textColor,
+      child: child,
     );
   }
 
@@ -779,42 +672,20 @@ class _MemorizationTestSetupScreenState
     required VoidCallback onTap,
     required Widget child,
   }) {
-    return Material(
-      color: isSelected
-          ? _gold.withValues(alpha: 0.09)
-          : _surface,
-      borderRadius: BorderRadius.circular(17),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(17),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(17),
-            border: Border.all(
-              color: isSelected ? _gold : _borderColor,
-              width: isSelected ? 1.4 : 0.8,
-            ),
-          ),
-          child: child,
-        ),
-      ),
+    return MemorizationTestSetupSelectableCard(
+      isSelected: isSelected,
+      onTap: onTap,
+      surface: _surface,
+      gold: _gold,
+      borderColor: _borderColor,
+      child: child,
     );
   }
 
   Widget _buildIconContainer(IconData icon, bool isSelected) {
-    return Container(
-      width: 43,
-      height: 43,
-      decoration: BoxDecoration(
-        color: _gold.withValues(alpha: isSelected ? 0.16 : 0.09),
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Icon(
-        icon,
-        color: _gold,
-        size: 23,
-      ),
+    return MemorizationTestSetupIcon(
+      icon: icon,
+      isSelected: isSelected,
     );
   }
 
@@ -822,10 +693,7 @@ class _MemorizationTestSetupScreenState
     return InputDecoration(
       filled: true,
       fillColor: _background,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 12,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: _borderColor),

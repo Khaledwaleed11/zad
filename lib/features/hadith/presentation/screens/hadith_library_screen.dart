@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/responsive.dart';
 
 import '../cubit/hadith_cubit.dart';
 import '../cubit/hadith_state.dart';
 import '../widgets/hadith_loading_widget.dart';
 import '../widgets/hadith_search_field.dart';
 import '../widgets/hadith_search_result_card.dart';
+import '../widgets/hadith_status_message.dart';
 import 'hadith_details_screen.dart';
 
 class HadithLibraryScreen extends StatefulWidget {
@@ -58,188 +60,188 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
 
     return Scaffold(
       backgroundColor: paperColor,
-      body: SafeArea(
-        bottom: false,
-        child: CustomScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            // AppBar
-            SliverAppBar(
-              backgroundColor: paperColor,
-              surfaceTintColor: Colors.transparent,
-              foregroundColor: textColor,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              centerTitle: true,
-              pinned: false,
-              floating: false,
-              automaticallyImplyLeading: true,
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: goldColor.withValues(alpha: 0.13),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.library_books_rounded,
-                      color: goldColor,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'مكتبة الأحاديث',
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // مقدمة البحث
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              sliver: SliverToBoxAdapter(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: innerPaperColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: goldColor.withValues(alpha: 0.35),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: goldColor.withValues(
-                          alpha: isDark ? 0.04 : 0.08,
-                        ),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+      body: ResponsiveBody(
+        child: SafeArea(
+          bottom: false,
+          child: CustomScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              // AppBar
+              SliverAppBar(
+                backgroundColor: paperColor,
+                surfaceTintColor: Colors.transparent,
+                foregroundColor: textColor,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                centerTitle: true,
+                pinned: false,
+                floating: false,
+                automaticallyImplyLeading: true,
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: goldColor.withValues(alpha: 0.13),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.auto_stories_rounded,
+                      child: Icon(
+                        Icons.library_books_rounded,
                         color: goldColor,
-                        size: 28,
+                        size: 22,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ابحث في الأحاديث النبوية',
-                              style: TextStyle(
-                                color: textColor,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'اكتب كلمة أو عبارة للعثور على الأحاديث المرتبطة بها',
-                              style: TextStyle(
-                                color: mutedColor,
-                                fontSize: 12,
-                                height: 1.6,
-                              ),
-                            ),
-                          ],
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'مكتبة الأحاديث',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // مقدمة البحث
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                sliver: SliverToBoxAdapter(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: innerPaperColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: goldColor.withValues(alpha: 0.35),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: goldColor.withValues(
+                            alpha: isDark ? 0.04 : 0.08,
+                          ),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.auto_stories_rounded,
+                          color: goldColor,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ابحث في الأحاديث النبوية',
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                'اكتب كلمة أو عبارة للعثور على الأحاديث المرتبطة بها',
+                                style: TextStyle(
+                                  color: mutedColor,
+                                  fontSize: 12,
+                                  height: 1.6,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            // حقل البحث
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-              sliver: SliverToBoxAdapter(
-                child: HadithSearchField(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  onChanged: (query) {
-                    setState(() {});
-                    context.read<HadithCubit>().search(query);
-                  },
-                  onClear: _clearSearch,
+              // حقل البحث
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+                sliver: SliverToBoxAdapter(
+                  child: HadithSearchField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    onChanged: (query) {
+                      setState(() {});
+                      context.read<HadithCubit>().search(query);
+                    },
+                    onClear: _clearSearch,
+                  ),
                 ),
               ),
-            ),
 
-            // نتائج البحث
-            BlocBuilder<HadithCubit, HadithState>(
-              builder: (context, state) {
-                if (state.isLoadingSearch) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: HadithLoadingWidget(
-                      message: 'جاري البحث عن الأحاديث...',
-                    ),
-                  );
-                }
+              // نتائج البحث
+              BlocBuilder<HadithCubit, HadithState>(
+                builder: (context, state) {
+                  if (state.isLoadingSearch) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: HadithLoadingWidget(
+                        message: 'جاري البحث عن الأحاديث...',
+                      ),
+                    );
+                  }
 
-                if (state.errorMessage != null &&
-                    state.searchResults.isEmpty &&
-                    _searchController.text.trim().isNotEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _buildMessage(
-                      icon: Icons.error_outline_rounded,
-                      title: 'تعذر إتمام البحث',
-                      subtitle: state.errorMessage!,
-                      goldColor: goldColor,
-                      textColor: textColor,
-                      mutedColor: mutedColor,
-                    ),
-                  );
-                }
+                  if (state.errorMessage != null &&
+                      state.searchResults.isEmpty &&
+                      _searchController.text.trim().isNotEmpty) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _buildMessage(
+                        icon: Icons.error_outline_rounded,
+                        title: 'تعذر إتمام البحث',
+                        subtitle: state.errorMessage!,
+                        goldColor: goldColor,
+                        textColor: textColor,
+                        mutedColor: mutedColor,
+                      ),
+                    );
+                  }
 
-                if (_searchController.text.trim().isEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _buildMessage(
-                      icon: Icons.search_rounded,
-                      title: 'ابدأ البحث',
-                      subtitle: 'ابحث عن حديث باستخدام كلمة أو عبارة',
-                      goldColor: goldColor,
-                      textColor: textColor,
-                      mutedColor: mutedColor,
-                    ),
-                  );
-                }
+                  if (_searchController.text.trim().isEmpty) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _buildMessage(
+                        icon: Icons.search_rounded,
+                        title: 'ابدأ البحث',
+                        subtitle: 'ابحث عن حديث باستخدام كلمة أو عبارة',
+                        goldColor: goldColor,
+                        textColor: textColor,
+                        mutedColor: mutedColor,
+                      ),
+                    );
+                  }
 
-                if (state.searchResults.isEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _buildMessage(
-                      icon: Icons.menu_book_outlined,
-                      title: 'لا توجد نتائج',
-                      subtitle: 'جرب البحث باستخدام كلمات مختلفة',
-                      goldColor: goldColor,
-                      textColor: textColor,
-                      mutedColor: mutedColor,
-                    ),
-                  );
-                }
+                  if (state.searchResults.isEmpty) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _buildMessage(
+                        icon: Icons.menu_book_outlined,
+                        title: 'لا توجد نتائج',
+                        subtitle: 'جرب البحث باستخدام كلمات مختلفة',
+                        goldColor: goldColor,
+                        textColor: textColor,
+                        mutedColor: mutedColor,
+                      ),
+                    );
+                  }
 
-                return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (context, index) {
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
                         final hadith = state.searchResults[index];
 
                         return HadithSearchResultCard(
@@ -247,8 +249,7 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
                           onTap: () {
                             _searchFocusNode.unfocus();
 
-                            final hadithCubit =
-                            context.read<HadithCubit>();
+                            final hadithCubit = context.read<HadithCubit>();
 
                             Navigator.push(
                               context,
@@ -263,14 +264,13 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
                             );
                           },
                         );
-                      },
-                      childCount: state.searchResults.length,
+                      }, childCount: state.searchResults.length),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -284,42 +284,13 @@ class _HadithLibraryScreenState extends State<HadithLibraryScreen> {
     required Color textColor,
     required Color mutedColor,
   }) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: goldColor.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: goldColor, size: 34),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: mutedColor,
-                fontSize: 13,
-                height: 1.7,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return HadithStatusMessage(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      goldColor: goldColor,
+      textColor: textColor,
+      mutedColor: mutedColor,
     );
   }
 }

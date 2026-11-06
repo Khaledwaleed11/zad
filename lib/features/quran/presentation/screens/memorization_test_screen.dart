@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/responsive.dart';
 
 import '../../../../core/widgets/zad_loading_widget.dart';
 import '../../domain/entities/memorization_test_session_entity.dart';
 import '../cubit/memorization_test_cubit.dart';
 import '../cubit/memorization_test_state.dart';
+import '../widgets/memorization_test_result_widgets.dart';
 
 class MemorizationTestScreen extends StatefulWidget {
   const MemorizationTestScreen({super.key});
@@ -122,15 +124,17 @@ class _MemorizationTestScreenState extends State<MemorizationTestScreen>
         // AppBar والمحتوى بالكامل داخل Scroll واحدة.
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildAppBar(context),
-                  _buildStateContent(context, state),
-                ],
+          body: ResponsiveBody(
+            child: SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildAppBar(context),
+                    _buildStateContent(context, state),
+                  ],
+                ),
               ),
             ),
           ),
@@ -495,44 +499,11 @@ class _MemorizationTestScreenState extends State<MemorizationTestScreen>
     required bool isSubmitted,
     required bool isCorrect,
   }) {
-    const green = Color(0xFF4C9365);
-    const red = Color(0xFFB65C4E);
-
-    final statusColor = isCorrect ? green : red;
-
-    final backgroundColor = !isSubmitted
-        ? _goldColor.withValues(alpha: 0.08)
-        : statusColor.withValues(alpha: 0.12);
-
-    final borderColor = !isSubmitted
-        ? _goldColor.withValues(alpha: 0.65)
-        : statusColor.withValues(alpha: 0.7);
-
-    return Container(
-      constraints: const BoxConstraints(
-        minWidth: 65,
-        maxWidth: 150,
-        minHeight: 39,
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor, width: 1.3),
-      ),
-      child: Text(
-        word.isEmpty ? '...' : word,
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.rtl,
-        style: TextStyle(
-          color: isSubmitted ? statusColor : _goldColor,
-          fontSize: 19,
-          height: 1.7,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+    return MemorizationAnswerSlot(
+      word: word,
+      isSubmitted: isSubmitted,
+      isCorrect: isCorrect,
+      gold: _goldColor,
     );
   }
 
@@ -982,7 +953,7 @@ class _MemorizationTestScreenState extends State<MemorizationTestScreen>
             _buildSmallHeading('آيات تحتاج إلى مراجعة'),
             const SizedBox(height: 13),
             ...session.missedAyahs.map(
-                  (ayah) => _buildMissedAyah(
+              (ayah) => _buildMissedAyah(
                 surahNumber: ayah.surahNumber,
                 surahName: ayah.surahName?.isNotEmpty == true
                     ? ayah.surahName!
@@ -1028,73 +999,33 @@ class _MemorizationTestScreenState extends State<MemorizationTestScreen>
     required int value,
     required Color color,
   }) {
-    return _buildDecoratedCard(
-      padding: const EdgeInsets.all(13),
-      child: Column(
-        children: [
-          Text(
-            '$value',
-            style: TextStyle(
-              color: color,
-              fontSize: 27,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _mutedColor,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
+    return MemorizationResultStat(
+      title: title,
+      value: value,
+      color: color,
+      paperColor: _paperColor,
+      goldColor: _goldColor,
+      borderColor: _borderColor,
+      mutedColor: _mutedColor,
+      isDark: _isDark,
     );
   }
 
-  Widget _buildMissedAyah({required int surahNumber, required int ayahNumber,  required String surahName,}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: _paperColor,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: _borderColor),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
-        decoration: BoxDecoration(
-          color: _innerPaperColor,
-          borderRadius: BorderRadius.circular(11),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.bookmark_outline_rounded, color: _goldColor, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                surahName.isNotEmpty ? surahName : 'سورة رقم $surahNumber',
-                style: TextStyle(
-                  color: _textColor,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            Text(
-              'الآية $ayahNumber',
-              style: TextStyle(
-                color: _mutedColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
+  Widget _buildMissedAyah({
+    required int surahNumber,
+    required int ayahNumber,
+    required String surahName,
+  }) {
+    return MemorizationMissedAyah(
+      surahNumber: surahNumber,
+      ayahNumber: ayahNumber,
+      surahName: surahName,
+      paperColor: _paperColor,
+      innerPaperColor: _innerPaperColor,
+      borderColor: _borderColor,
+      goldColor: _goldColor,
+      textColor: _textColor,
+      mutedColor: _mutedColor,
     );
   }
 

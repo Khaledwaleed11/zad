@@ -5,8 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 
 import '../../../../../../../core/dependency_injection/injection_container.dart';
+import '../../../../core/utils/responsive.dart';
 import '../cubit/qibla_cubit.dart';
 import '../cubit/qibla_state.dart';
+import '../widgets/qibla_app_bar.dart';
 import '../widgets/qibla_compass_section.dart';
 import '../widgets/qibla_hero_header.dart';
 import '../widgets/qibla_info_card.dart';
@@ -200,43 +202,11 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
   // Scrollable AppBar
 
   Widget _buildAppBar() {
-    return AppBar(
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      surfaceTintColor: Colors.transparent,
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: gold.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: lightGold),
-            ),
-            child: Icon(Icons.explore_rounded, color: gold, size: 21),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            'اتجاه القبلة',
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w900,
-              color: textColor,
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        IconButton(
-          onPressed: initializeQibla,
-          tooltip: 'تحديث',
-          icon: Icon(Icons.refresh_rounded, color: gold),
-        ),
-      ],
+    return QiblaAppBar(
+      gold: gold,
+      lightGold: lightGold,
+      textColor: textColor,
+      onRefresh: initializeQibla,
     );
   }
 
@@ -275,35 +245,37 @@ class _QiblaScreenViewState extends State<_QiblaScreenView>
 
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          body: SafeArea(
-            bottom: false,
-            child: isLoading
-                ? _buildStateBody(
-                    QiblaLoadingView(
-                      isDark: isDark,
-                      paper: paper,
-                      innerPaper: innerPaper,
-                      gold: gold,
-                      lightGold: lightGold,
-                      textColor: textColor,
-                      mutedColor: mutedColor,
-                    ),
-                  )
-                : hasError || state.qiblaBearing == null
-                ? _buildStateBody(
-                    QiblaErrorView(
-                      error: error,
-                      onRetry: initializeQibla,
-                      isDark: isDark,
-                      paper: paper,
-                      innerPaper: innerPaper,
-                      gold: gold,
-                      lightGold: lightGold,
-                      textColor: textColor,
-                      mutedColor: mutedColor,
-                    ),
-                  )
-                : _buildBody(),
+          body: ResponsiveBody(
+            child: SafeArea(
+              bottom: false,
+              child: isLoading
+                  ? _buildStateBody(
+                      QiblaLoadingView(
+                        isDark: isDark,
+                        paper: paper,
+                        innerPaper: innerPaper,
+                        gold: gold,
+                        lightGold: lightGold,
+                        textColor: textColor,
+                        mutedColor: mutedColor,
+                      ),
+                    )
+                  : hasError || state.qiblaBearing == null
+                  ? _buildStateBody(
+                      QiblaErrorView(
+                        error: error,
+                        onRetry: initializeQibla,
+                        isDark: isDark,
+                        paper: paper,
+                        innerPaper: innerPaper,
+                        gold: gold,
+                        lightGold: lightGold,
+                        textColor: textColor,
+                        mutedColor: mutedColor,
+                      ),
+                    )
+                  : _buildBody(),
+            ),
           ),
         );
       },

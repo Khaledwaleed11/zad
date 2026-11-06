@@ -105,7 +105,7 @@ class SebhaZikrSelector extends StatelessWidget {
                   shrinkWrap: true,
                   padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
                   itemCount: availableAzkar.length,
-                  separatorBuilder: (_, __) =>
+                  separatorBuilder: (_, _) =>
                   const SizedBox(height: 9),
                   itemBuilder: (context, index) {
                     final zikr = availableAzkar[index];

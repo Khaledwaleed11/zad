@@ -1,5 +1,6 @@
 import '../../../../core/constants/storage_constants.dart';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
@@ -66,7 +67,7 @@ class QuranCubit extends Cubit<QuranState> {
       ayahNumber,
     ) {
       if (isClosed) return;
-      print('CUBIT RECEIVED AYAH: $ayahNumber');
+      debugPrint('CUBIT RECEIVED AYAH: $ayahNumber');
       emit(
         state.copyWith(
           currentAyahNumber: ayahNumber,

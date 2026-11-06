@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 class SettingsSalawatCountdown extends StatelessWidget {
   final DateTime? nextTime;

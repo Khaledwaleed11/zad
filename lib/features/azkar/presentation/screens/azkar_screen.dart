@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../../../core/dependency_injection/injection_container.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/azkar_entity.dart';
 import '../cubit/azkar_cubit.dart';
 import '../cubit/azkar_state.dart';
@@ -15,10 +15,7 @@ import '../widgets/azkar_state_views.dart';
 class AzkarScreen extends StatefulWidget {
   final String initialCategory;
 
-  const AzkarScreen({
-    super.key,
-    this.initialCategory = 'morning',
-  });
+  const AzkarScreen({super.key, this.initialCategory = 'morning'});
 
   @override
   State<AzkarScreen> createState() => _AzkarScreenState();
@@ -52,32 +49,18 @@ class _AzkarScreenState extends State<AzkarScreen>
     );
 
     _headerSlide =
-        Tween<Offset>(
-          begin: const Offset(0, -0.08),
-          end: Offset.zero,
-        ).animate(
+        Tween<Offset>(begin: const Offset(0, -0.08), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _pageController,
-            curve: const Interval(
-              0.00,
-              0.35,
-              curve: Curves.easeOutCubic,
-            ),
+            curve: const Interval(0.00, 0.35, curve: Curves.easeOutCubic),
           ),
         );
 
-    _chipsSlide =
-        Tween<Offset>(
-          begin: const Offset(0, 0.08),
-          end: Offset.zero,
-        ).animate(
+    _chipsSlide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
+        .animate(
           CurvedAnimation(
             parent: _pageController,
-            curve: const Interval(
-              0.20,
-              0.55,
-              curve: Curves.easeOutCubic,
-            ),
+            curve: const Interval(0.20, 0.55, curve: Curves.easeOutCubic),
           ),
         );
 
@@ -112,10 +95,7 @@ class _AzkarScreenState extends State<AzkarScreen>
     }
 
     return allAzkar
-        .where(
-          (zekr) =>
-      !zekr.isCustom && zekr.category == selectedCategory,
-    )
+        .where((zekr) => !zekr.isCustom && zekr.category == selectedCategory)
         .toList();
   }
 
@@ -131,16 +111,13 @@ class _AzkarScreenState extends State<AzkarScreen>
     _categoryController.forward(from: 0);
   }
 
-  Future<void> _showAzkarForm(
-      BuildContext context, {
-        AzkarEntity? zekr,
-      }) async {
+  Future<void> _showAzkarForm(BuildContext context, {AzkarEntity? zekr}) async {
     final result = await showDialog<AzkarEntity>(
       context: context,
       builder: (_) => AzkarFormDialog(zekr: zekr),
     );
 
-    if (!mounted || result == null) return;
+    if (!context.mounted || result == null) return;
 
     final cubit = context.read<AzkarCubit>();
 
@@ -150,21 +127,19 @@ class _AzkarScreenState extends State<AzkarScreen>
       await cubit.updateCustomZikr(result);
     }
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          zekr == null ? 'تمت إضافة الذكر' : 'تم تعديل الذكر',
-        ),
+        content: Text(zekr == null ? 'تمت إضافة الذكر' : 'تم تعديل الذكر'),
       ),
     );
   }
 
   Future<void> _confirmDeleteAzkar(
-      BuildContext context,
-      AzkarEntity zekr,
-      ) async {
+    BuildContext context,
+    AzkarEntity zekr,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
@@ -173,16 +148,14 @@ class _AzkarScreenState extends State<AzkarScreen>
           content: const Text('هل أنت متأكد من حذف هذا الذكر؟'),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, false),
+              onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('إلغاء'),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
-              onPressed: () =>
-                  Navigator.pop(dialogContext, true),
+              onPressed: () => Navigator.pop(dialogContext, true),
               child: const Text('حذف'),
             ),
           ],
@@ -190,15 +163,15 @@ class _AzkarScreenState extends State<AzkarScreen>
       },
     );
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !context.mounted) return;
 
     await context.read<AzkarCubit>().deleteCustomZikr(zekr.id);
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حذف الذكر')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('تم حذف الذكر')));
   }
 
   String getCategoryTitle() {
@@ -250,9 +223,7 @@ class _AzkarScreenState extends State<AzkarScreen>
             decoration: BoxDecoration(
               color: const Color(0xFFA88746).withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFD6BE83),
-              ),
+              border: Border.all(color: const Color(0xFFD6BE83)),
             ),
             child: const Icon(
               Icons.auto_awesome_rounded,
@@ -263,10 +234,7 @@ class _AzkarScreenState extends State<AzkarScreen>
           const SizedBox(width: 10),
           const Text(
             'الأذكار',
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -289,26 +257,28 @@ class _AzkarScreenState extends State<AzkarScreen>
       create: (_) => sl<AzkarCubit>()..loadAzkar(),
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        body: BlocConsumer<AzkarCubit, AzkarState>(
-          listener: (context, state) {
-            if (state.status == AzkarStatus.success) {
-              _pageController.forward(from: 0);
-              _categoryController.forward(from: 0);
-            }
-          },
-          builder: (context, state) {
-            return _buildBody(context, colors, state);
-          },
+        body: ResponsiveBody(
+          child: BlocConsumer<AzkarCubit, AzkarState>(
+            listener: (context, state) {
+              if (state.status == AzkarStatus.success) {
+                _pageController.forward(from: 0);
+                _categoryController.forward(from: 0);
+              }
+            },
+            builder: (context, state) {
+              return _buildBody(context, colors, state);
+            },
+          ),
         ),
       ),
     );
   }
 
   Widget _buildBody(
-      BuildContext context,
-      ColorScheme colors,
-      AzkarState state,
-      ) {
+    BuildContext context,
+    ColorScheme colors,
+    AzkarState state,
+  ) {
     if (state.status == AzkarStatus.initial ||
         state.status == AzkarStatus.loading) {
       return CustomScrollView(
@@ -332,8 +302,7 @@ class _AzkarScreenState extends State<AzkarScreen>
             hasScrollBody: false,
             child: AzkarErrorView(
               colors: colors,
-              onRetry: () =>
-                  context.read<AzkarCubit>().loadAzkar(),
+              onRetry: () => context.read<AzkarCubit>().loadAzkar(),
             ),
           ),
         ],
@@ -359,8 +328,7 @@ class _AzkarScreenState extends State<AzkarScreen>
                     position: _headerSlide,
                     child: AzkarHeader(
                       categoryTitle: getCategoryTitle(),
-                      categoryDescription:
-                      getCategoryDescription(),
+                      categoryDescription: getCategoryDescription(),
                     ),
                   ),
                 ),
@@ -441,10 +409,8 @@ class _AzkarScreenState extends State<AzkarScreen>
             sliver: AzkarList(
               azkar: azkar,
               selectedCategory: selectedCategory,
-              onEdit: (zekr) =>
-                  _showAzkarForm(context, zekr: zekr),
-              onDelete: (zekr) =>
-                  _confirmDeleteAzkar(context, zekr),
+              onEdit: (zekr) => _showAzkarForm(context, zekr: zekr),
+              onDelete: (zekr) => _confirmDeleteAzkar(context, zekr),
             ),
           ),
       ],
