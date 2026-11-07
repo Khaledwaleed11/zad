@@ -1,4 +1,4 @@
-# ZAD | زاد
+# ZAD
 
 **ZAD is an Arabic Islamic companion app** that brings Quran reading and listening, daily remembrance, prayer times, Qibla direction, Hadith, duas, and Prophets' stories into one mobile experience.
 
