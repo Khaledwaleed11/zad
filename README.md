@@ -1,384 +1,157 @@
-# 🌙 ZAD
+# زاد | ZAD
 
-  تطبيق إسلامي حديث يجمع القرآن والأذكار ومواقيت الصلاة والقبلة والسبحة في تجربة واحدة بسيطة وأنيقة.
-
-</p>
+**زادك في طريقك إلى الله** — تطبيق إسلامي يجمع الأدوات والمحتوى اليومي في تجربة واحدة باللغة العربية، مع واجهة تدعم الوضعين الفاتح والداكن.
 
 <p align="center">
-
-  <img src="https://img.shields.io/badge/Flutter-5B4B9A?style=for-the-badge&logo=flutter&logoColor=white">
-  <img src="https://img.shields.io/badge/Dart-8B7CC8?style=for-the-badge&logo=dart&logoColor=white">
-  <img src="https://img.shields.io/badge/Material_3-6C5BAA?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Platform-Android-7B6FB2?style=for-the-badge&logo=android&logoColor=white">
-
+  <img src="https://img.shields.io/badge/Flutter-Framework-54C5F8?logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Dart-Language-0175C2?logo=dart&logoColor=white" alt="Dart" />
+  <img src="https://img.shields.io/badge/Material%203-UI-735C2F" alt="Material 3" />
+  <img src="https://img.shields.io/badge/Android-Supported-3DDC84?logo=android&logoColor=white" alt="Android" />
 </p>
 
----
+## المشكلة والحل
 
-## ✨ Overview
+تتوزع احتياجات المسلم اليومية — مثل قراءة القرآن، ومتابعة الأذكار، ومعرفة مواقيت الصلاة، والبحث عن حديث أو دعاء — بين تطبيقات ومصادر متعددة. هذا يجعل الوصول إلى الأدوات المناسبة ومتابعة العبادات اليومية أقل سهولة.
 
-**ZAD** is a modern Islamic mobile application built with **Flutter**.
+يجمع **زاد** هذه الأدوات في تطبيق واحد: تصفح القرآن والاستماع إليه واختبار الحفظ، الأذكار والسبحة، مواقيت الصلاة والقبلة، الأدعية والأحاديث وقصص الأنبياء، مع إعدادات للتنبيهات ومكتبة صوتية. صُممت الشاشات لتكون عربية ومتناسقة، وتعرض المحتوى في أقسام واضحة.
 
-The goal of the project is to provide the most important daily worship tools in one place while maintaining a clean, modern, and comfortable user experience.
+## المزايا
 
-The application combines useful Islamic content with thoughtful **UI/UX, animations, local persistence, API integration, and device sensors**.
+- **القرآن الكريم:** تصفح السور والآيات، البحث عن السورة بالاسم أو الرقم، عرض الآيات، واختيار قارئ والاستماع للتلاوة.
+- **اختبار الحفظ:** إعداد اختبار على القرآن أو سورة أو مجموعة سور أو نطاق آيات، اختيار مستوى الصعوبة، مراجعة النتيجة والآيات التي تحتاج إلى مراجعة.
+- **الأذكار:** أذكار الصباح والمساء والنوم وغيرها، مع إمكانية إضافة الأذكار المخصصة وتعديلها وحذفها.
+- **السبحة:** اختيار الذكر والهدف، متابعة العداد والتقدم، وحفظ الحالة محليًا.
+- **مواقيت الصلاة:** مواقيت اليوم وتقويم الصلاة، مع إشعارات قابلة للضبط وخيار تشغيل الأذان.
+- **القبلة:** تحديد الموقع وحساب اتجاه القبلة وعرضه باستخدام بوصلة الجهاز.
+- **الأحاديث النبوية:** حديث اليوم، حديث عشوائي، البحث في الأحاديث، وعرض التفاصيل والمصدر والدرجة والرواة عند توفرها.
+- **الأدعية:** استعراض الأدعية المكتوبة حسب التصنيف، البحث عنها وإضافتها للمفضلة.
+- **قصص الأنبياء:** تصفح الأبواب وقراءة محتوى القصص.
+- **المكتبة الصوتية:** اختيار أصوات المؤذنين، تشغيل التلاوات، وإدارة التسجيلات الصوتية الشخصية.
+- **التنبيهات والمظهر:** إعداد تذكيرات الصلاة والأذكار والصلاة على النبي، والتبديل بين الوضع الفاتح والداكن.
 
----
+## لقطات من التطبيق
 
-# 🚀 Highlights
+الصور التالية من شاشات التطبيق الحالية. جُمعت شاشات كل قسم معًا، وجميع ملفات الصور موجودة في جذر المستودع.
 
-### 📖 Quran
-
-Browse and search all Quran Surahs with a dedicated reading experience.
-
-- Arabic search
-- English search
-- Surah number search
-- Arabic text normalization
-- Surah reading screen
-- Share Quran content
-
-### 🤲 Azkar
-
-A complete daily Azkar experience with separate categories.
-
-- Morning Azkar
-- Evening Azkar
-- Sleep Azkar
-- Interactive Zikr cards
-- Animated category switching
-- Smooth scrolling experience
-
-### 📿 Sebha
-
-An interactive digital Sebha designed around smooth user interaction.
-
-- Multiple Azkar
-- 33 / 99 targets
-- Animated progress ring
-- Counter animations
-- Ripple feedback
-- Glow effects
-- Completion animation
-- Automatic progress saving
-
-### 🕌 Prayer Times
-
-View daily prayer times and know the upcoming prayer.
-
-- Fajr
-- Dhuhr
-- Asr
-- Maghrib
-- Isha
-- Sunrise
-- Sunset
-- Live countdown
-- Upcoming prayer detection
-
-### 🧭 Qibla
-
-Use your device sensors to determine the Qibla direction.
-
-- Compass integration
-- Location detection
-- Qibla bearing
-- Direction indicator
-- Real-time updates
-
-### 🌗 Theme
-
-A complete custom design system supporting:
-
-- Light Mode
-- Dark Mode
-- Indigo & Lavender visual identity
-- Consistent components
-- Responsive UI
-
----
-
-# 📱 Screenshots
-
-## 🌙 Splash Screen
+### شاشة البداية والرئيسية
 
 <p align="center">
-  <img width="350" height="700" alt="zad_splash" src="https://github.com/user-attachments/assets/7b07e91d-345e-415b-b655-e085d59a1739" />
-
+  <img src="./splash.jpeg" width="220" alt="شاشة بداية زاد" />
+  <img src="./home-overview.jpeg" width="220" alt="الصفحة الرئيسية" />
+  <img src="./home-quick-actions.jpeg" width="220" alt="اختصارات ومزايا الصفحة الرئيسية" />
 </p>
 
----
+### القرآن الكريم واختبار الحفظ
 
-## 🏠 Home
 <p align="center">
-
-<img width="350" height="700" alt="zad_home" src="https://github.com/user-attachments/assets/019637e2-b896-427d-b5b7-608bb71dc6f1" />
-
+  <img src="./quran-library.jpeg" width="220" alt="قائمة سور القرآن الكريم" />
+  <img src="./quran-reading.jpeg" width="220" alt="قراءة سورة من القرآن" />
+  <img src="./quran-reciter-selection.jpeg" width="220" alt="اختيار قارئ للقرآن" />
+  <img src="./quran-memorization-setup.jpeg" width="220" alt="إعداد اختبار الحفظ" />
+  <img src="./quran-memorization-quiz.jpeg" width="220" alt="أسئلة اختبار الحفظ" />
+  <img src="./quran-memorization-results.jpeg" width="220" alt="نتيجة اختبار الحفظ والآيات للمراجعة" />
 </p>
 
----
+### الأذكار والسبحة
 
-## 📖 Quran
 <p align="center">
-
-<img width="350" height="700" alt="zad_quraan" src="https://github.com/user-attachments/assets/cea546b5-39e8-4912-b184-d00d8c36ba62" />
-
+  <img src="./azkar.jpeg" width="220" alt="الأذكار اليومية" />
+  <img src="./sebha-overview.jpeg" width="220" alt="اختيار الذكر وهدف السبحة" />
+  <img src="./sebha-counter.jpeg" width="220" alt="عداد السبحة والتقدم" />
 </p>
 
----
+### الأحاديث النبوية
 
-## 📜 Surah Reading
 <p align="center">
-
-<img width="350" height="700" alt="zad_surah" src="https://github.com/user-attachments/assets/27270cb9-eefd-43b9-8ba5-3141ec324158" />
-
+  <img src="./hadith-home.jpeg" width="220" alt="الرئيسية وقسم حديث اليوم" />
+  <img src="./hadith-details.jpeg" width="220" alt="تفاصيل الحديث ومصدره" />
+  <img src="./hadith-library.jpeg" width="220" alt="البحث في مكتبة الأحاديث" />
 </p>
 
----
+### الأدعية
 
-## 🤲 Azkar
 <p align="center">
-
-<img width="350" height="700" alt="zad_azkar" src="https://github.com/user-attachments/assets/cfeb26c1-83cd-46e8-8dc5-55a73caac69d" />
-
+  <img src="./duas.jpeg" width="220" alt="قائمة الأدعية" />
+  <img src="./dua-categories.jpeg" width="220" alt="تصنيفات الأدعية" />
 </p>
 
----
+### مواقيت الصلاة والقبلة
 
-## 📿 Sebha
 <p align="center">
-
-<img width="" height="700" alt="zad_sebha" src="https://github.com/user-attachments/assets/5f1fc920-7454-4fe3-b3b6-8e2005b44c47" />
-
+  <img src="./prayer-times.jpeg" width="220" alt="مواقيت الصلاة والوقت المتبقي للصلاة القادمة" />
+  <img src="./qibla.jpeg" width="220" alt="بوصلة اتجاه القبلة" />
 </p>
 
----
+### قصص الأنبياء
 
-## 🧭 Qibla
 <p align="center">
-
-<img width="350" height="700" alt="zad_qibla" src="https://github.com/user-attachments/assets/b2e06c96-be7a-4e86-9217-94d1112006f3" />
-
+  <img src="./prophets-stories.jpeg" width="220" alt="فهرس قصص الأنبياء" />
+  <img src="./prophet-story-reader.jpeg" width="220" alt="قراءة قصة من قصص الأنبياء" />
 </p>
 
----
+### الإعدادات والمكتبة الصوتية
 
-## 🕌 Prayer Times
 <p align="center">
-
-<img width="350" height="700" alt="zad_prayer" src="https://github.com/user-attachments/assets/26b2c03d-1857-4571-9342-395d45bd0d85" />
-
+  <img src="./settings-main.jpeg" width="220" alt="إعدادات المظهر والصلاة" />
+  <img src="./settings-notifications-and-audio.jpeg" width="220" alt="إعدادات التنبيهات والمكتبة الصوتية" />
+  <img src="./adhan-voices.jpeg" width="220" alt="اختيار صوت المؤذن ومعاينته" />
 </p>
 
----
+## الأدوات والتقنيات
 
-## ⚙️ Settings
-<p align="center">
+| التقنية | الاستخدام في التطبيق |
+| --- | --- |
+| Flutter وDart | بناء تطبيق الهاتف وواجهاته |
+| Material 3 | مكونات الواجهة ونظام التصميم |
+| `flutter_bloc` (Cubit) | إدارة حالة ميزات التطبيق |
+| `get_it` | تسجيل الخدمات وحل الاعتماديات |
+| Hive و`hive_flutter` | حفظ الإعدادات والتفضيلات والبيانات محليًا |
+| `http` وواجهات REST | جلب بيانات القرآن والأحاديث ومواقيت الصلاة والأصوات والقصص |
+| `geolocator` و`flutter_compass` | الوصول إلى الموقع وقراءة اتجاه البوصلة للقبلة |
+| `just_audio` | تشغيل التلاوات والمعاينات الصوتية |
+| `file_picker` و`path_provider` | اختيار التسجيلات وإدارة ملفات الصوت المحلية |
+| `flutter_local_notifications` و`timezone` و`flutter_timezone` | جدولة الإشعارات المحلية حسب الوقت والمنطقة الزمنية |
+| أصول JSON ونصوص محلية | توفير بيانات الأذكار والأدعية ونص القرآن المحلي |
 
-<img width="350" height="700" alt="zad_setting" src="https://github.com/user-attachments/assets/15aa2504-1104-43f9-b2e0-d51c643a97d9" />
+### مصادر البيانات المتصلة
 
-</p>
+- [Al Quran Cloud](https://alquran.cloud/api) و[MP3 Quran](https://mp3quran.net/api) لبيانات السور والقراء والصوت.
+- [AlAdhan](https://aladhan.com/prayer-times-api) لمواقيت الصلاة والتقويم.
+- [Bayan Alwa7i](https://bayan.alwa7i.com/) للبحث عن الأحاديث وتفاصيلها.
+- [Wikisource API](https://ar.wikisource.org/) لفهرس ومحتوى قصص الأنبياء.
+- [Alfurqan Online](https://alfurqan.online/) لقائمة أصوات الأذان وملفاتها الصوتية.
 
----
+## تنظيم المشروع
 
-# 🎨 Design
-
-ZAD follows a custom **Indigo & Lavender** design system.
-
-### Light Mode
-
-```text
-Background : #F7F7FC
-Surface    : #FFFFFF
-Primary    : #5B4B9A
-Accent     : #8B7CC8
-````
-
-### Dark Mode
-
-```text
-Background : #0D0C14
-Surface    : #171620
-Primary    : #B5A7F4
-Accent     : #9E8EDA
-```
-
-The design system focuses on:
-
-**Consistency • Readability • Motion • Simplicity**
-
----
-
-# 🧩 Architecture
-
-The project follows a clean and reusable Flutter structure:
+تُقسم الميزات إلى وحدات مستقلة تحت `lib/features/`، وتضم طبقات للعرض والمنطق ومصادر البيانات. تستخدم الوحدات كيانات وحالات واستخدامات ومستودعات، وتفصل الوصول للبيانات المحلية أو الشبكية عن الواجهات.
 
 ```text
 lib/
-│
-├── api_services/
-│
-├── models/
-│
-├── screens/
-│
-├── services/
-│
-├── theme/
-│
-├── utils/
-│
-└── widgets/
+├── app/                 # تشغيل التطبيق والتنقل الرئيسي
+├── core/                # الثيم، الأدوات، الثوابت، وحقن الاعتماديات
+├── features/            # القرآن، الأذكار، الصلاة، القبلة، وغيرها
+├── api_services/        # خدمات واجهات الشبكة
+└── services/            # خدمات عامة مثل الصوت والصلاة
+assets/                  # بيانات التطبيق المحلية
 ```
 
-### Architecture idea
+## التشغيل
 
-```text
-UI
- ↓
-Screens
- ↓
-Services
- ↓
-API / Local Storage
-```
-
-Reusable components are separated into widgets to keep the project maintainable and scalable.
-
----
-
-# 💾 Local Persistence
-
-**Hive** is used for local storage.
-
-Currently used for important application data such as:
-
-* Sebha progress
-* Selected Zikr
-* Target count
-* Saved user state
-
-This allows progress to remain available after closing the application.
-
----
-
-# 🌐 API & Device Integration
-
-ZAD integrates external APIs and device capabilities for dynamic functionality.
-
-### API
-
-* Quran data
-* Prayer Times
-
-### Device
-
-* Geolocation
-* Compass sensors
-
-### Additional
-
-* Share functionality
-* Local persistence
-
----
-
-# 🛠️ Tech Stack
-
-| Technology      | Usage                 |
-| --------------- | --------------------- |
-| Flutter         | Application framework |
-| Dart            | Programming language  |
-| Material 3      | UI system             |
-| Hive            | Local storage         |
-| Geolocator      | Location services     |
-| Flutter Compass | Qibla direction       |
-| Share Plus      | Sharing content       |
-| REST APIs       | Remote data           |
-
----
-
-# 🚀 Getting Started
-
-### 1. Clone the project
+يتطلب تشغيل المشروع تثبيت [Flutter](https://docs.flutter.dev/get-started/install) وDart المتوافقين مع إعدادات المشروع.
 
 ```bash
-git clone https://github.com/Khaledwaleed11/zad
-```
-
-### 2. Open the project
-
-```bash
+git clone https://github.com/Khaledwaleed11/zad.git
 cd zad
-```
-
-### 3. Install dependencies
-
-```bash
 flutter pub get
-```
-
-### 4. Run the application
-
-```bash
 flutter run
 ```
 
----
-
-# 📦 Build APK
-
-Create a release APK using:
+لبناء نسخة Android للإصدار:
 
 ```bash
 flutter build apk --release
 ```
 
-The generated APK will be available at:
+## الترخيص
 
-```text
-build/app/outputs/flutter-apk/app-release.apk
-```
-
----
-
-# 🎯 What I Practiced
-
-This project helped me practice and implement:
-
-* Flutter UI development
-* Responsive layouts
-* Material 3
-* REST API integration
-* JSON parsing
-* Local storage with Hive
-* State management using Flutter state
-* Device location
-* Compass sensors
-* Reusable widgets
-* Light & Dark themes
-* Animations and micro-interactions
-* Navigation architecture
-
----
-
-# 👨‍💻 Developer
-
-### Khaled Waleed
-
-Flutter Developer | .NET Developer
-
----
-
-<p align="center">
-
-<strong>Made with ❤️ using Flutter</strong>
-
-  <br>
-
-  <br>
-
-🌙 <strong>ZAD — زادك في طريقك إلى الله</strong> 🌙
-
-</p>
-```
+لم يُضف ملف ترخيص للمشروع بعد. يُرجى الرجوع إلى مالك المستودع قبل إعادة استخدام الكود أو الأصول.
